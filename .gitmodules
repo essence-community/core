@@ -1,8 +1,8 @@
 [submodule "frontend"]
 	path = frontend
 	url = git@github.com:essence-community/core-frontend.git
-	branch = master
+	branch = 2.0.0
 [submodule "backend"]
 	path = backend
 	url = git@github.com:essence-community/core-backend.git
-	branch = master
+	branch = 2.0.0
