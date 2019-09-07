@@ -1,0 +1,24 @@
+{
+    "handlers": {
+        "errors": {
+            "class": "rufus/handlers/file",
+            "file": "/var/log/ungate_error.log",
+            "level": "ERROR"
+        },
+        "main": {
+            "class": "rufus/handlers/rotating",
+            "file": "/var/log/ungate_main.log",
+            "maxSize": "30mb",
+            "maxFile": "30"
+        },
+        "console": {
+            "class": "rufus/handlers/console"
+        }
+    },
+    "loggers": {
+        "root": {
+            "level": "TRACE",
+            "handlers": ["main", "console"]
+        }
+    }
+}
