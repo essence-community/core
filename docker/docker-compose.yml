@@ -1,0 +1,68 @@
+version: '3'
+services:
+  web-build:
+    build: ./web-build
+    volumes:
+      - './../frontend:/core-frontend'
+      - './dist:/dist'
+    environment:
+      REACT_APP_BASE_URL: /api
+      REACT_APP_WS_BASE_URL: /notification
+      REACT_APP_SETTINGS: /api?action=sql&query=MTGetSysSettings&js=true
+
+  gate:
+    build: ./gate
+    depends_on:
+      - postgres
+    volumes:
+      - './dist:/dist'
+      - './../backend:/core-backend'
+      - './gate/config:/opt/work_gate/configs'
+    environment:
+      LOGGER_CONF: /opt/work_gate/configs/logger.json
+      GATE_CLUSTER_NUM: 4
+      PROPERTY_DIR: /opt/work_gate/configs
+      GATE_UPLOAD_DIR: /opt/work_gate/tmp
+      NEDB_TEMP_DB: /opt/work_gate/tmp/db
+    links:
+      - postgres
+
+  liquibase:
+    build: ./liquibase
+    depends_on:
+      - postgres
+    volumes:
+      - '../backend/dbms:/dbms'
+      - '../backend/dbms_auth:/dbms_auth'
+      - './liquibase/scripts:/scripts'
+    environment:
+      WAIT_HOSTS: postgres:5432
+      POSTGRES_PASSWORD: s_su
+      POSTGRES_USER: s_su
+      POSTGRES_URL_CORE: jdbc:postgresql://postgres:5432/core
+      POSTGRES_URL_AUTH: jdbc:postgresql://postgres:5432/core_auth
+    links:
+      - postgres
+
+  postgres:
+    build: ./postgres
+    ports:
+      - "9021:5432"
+    volumes:
+      - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+    environment:
+      POSTGRES_PASSWORD: s_su
+      POSTGRES_USER: s_su
+      POSTGRES_DB: s_su
+      POSTGRES_CORE_DB: core
+
+  server:
+    build: ./server
+    depends_on:
+      - gate
+    volumes:
+      - './dist/front:/web'
+    ports:
+      - '9020:80'
+    links:
+      - gate
