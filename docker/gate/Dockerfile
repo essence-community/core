@@ -9,6 +9,8 @@ CMD bash -c 'while !</dev/tcp/postgres/5432; do sleep 1; done;' && \
     yarn install && \
     yarn build && \
     rm -rf /opt/work_gate/ungate/* && \
+    rm -rf /opt/work_gate/*.sock && \
+    rm -rf /opt/work_gate/**/*.sock && \
     rm -rf /opt/work_gate/tmp/* && \
     cp -v -r /core-backend/bin/* /opt/work_gate/ungate/. && \
     cd /opt/work_gate/ungate && \
