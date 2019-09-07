@@ -24,6 +24,8 @@ services:
       PROPERTY_DIR: /opt/work_gate/configs
       GATE_UPLOAD_DIR: /opt/work_gate/tmp
       NEDB_TEMP_DB: /opt/work_gate/tmp/db
+      NEDB_MULTI_HOST: 'unix:///opt/work_gate/nedb.sock'
+      GATE_NODE_NAME: gate
     links:
       - postgres
 
