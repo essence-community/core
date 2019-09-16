@@ -63,6 +63,7 @@ services:
     depends_on:
       - gate
     volumes:
+      - './dist:/dist'
       - './dist/front:/web'
     ports:
       - '9020:80'
