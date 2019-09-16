@@ -1,9 +1,7 @@
 FROM node:11
 
-CMD cd /core-frontend/packages/@essence/essence-constructor-share && \
-    yarn install && \
-    yarn build && \
-    cd /core-frontend/ && \
+CMD cd /core-frontend/ && \
+    rm -rf build && \
     yarn install && \
     yarn build && \
     rm -rf /dist/front/* && \
