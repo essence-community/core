@@ -9,5 +9,4 @@ CMD bash -c 'while [ ! -f /opt/work_gate/ungate/yarn.lock ]; do sleep 1; done; w
     rm -rf /opt/work_gate/**/*.sock && \
     rm -rf /opt/work_gate/tmp/* && \
     cd /opt/work_gate/ungate && \
-    cat package.json && \
     yarn server
