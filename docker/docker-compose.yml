@@ -10,13 +10,20 @@ services:
       REACT_APP_WS_BASE_URL: /notification
       REACT_APP_SETTINGS: /api?action=sql&query=MTGetSysSettings&js=true
 
+  gate-build:
+    build: ./gate-build
+    volumes:
+      - './dist:/dist'
+      - './../backend:/core-backend'
+    environment:
+      GATE_NODE_NAME: gate
+
   gate:
     build: ./gate
     depends_on:
       - postgres
     volumes:
-      - './dist:/dist'
-      - './../backend:/core-backend'
+      - './dist/ungate:/opt/work_gate/ungate'
       - './gate/config:/opt/work_gate/configs'
     environment:
       LOGGER_CONF: /opt/work_gate/configs/logger.json
