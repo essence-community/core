@@ -1,0 +1,3 @@
+*.sh		text eol=lf
+*.toml		text eol=lf
+liquibase   text eol=lf
