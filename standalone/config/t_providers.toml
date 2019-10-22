@@ -22,7 +22,7 @@ ck_d_plugin = "coreauthpg"
 cv_description = "Провайдер внутренней авторизации"
 
 [data.cct_params]
-connectString = "postgres://s_ac:s_ac@#DB_HOST#:#DB_PORT#/core_auth"
+connectString = "postgres://s_ac:s_ac@#DB_HOST#:#DB_PORT#/#DB_PREFIX#auth"
 poolMax = 10
 sessionDuration = 2_000
 onlySession = false
@@ -36,7 +36,7 @@ ck_d_plugin = "PostgreSQLDb"
 [data.cct_params]
 core = true
 poolMax = 100
-connectString = "postgres://s_su:s_su@#DB_HOST#:#DB_PORT#/core"
+connectString = "postgres://s_su:s_su@#DB_HOST#:#DB_PORT#/#DB_PREFIX#meta"
 
 [[data]]
 [data."$$indexCreated"]

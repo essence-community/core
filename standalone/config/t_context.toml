@@ -8,7 +8,7 @@ ck_d_plugin = "CorePGContext"
   debug = true
   disableCache = true
   poolMax = 100
-  connectString = "postgres://s_su:s_su@#DB_HOST#:#DB_PORT#/core"
+  connectString = "postgres://s_su:s_su@#DB_HOST#:#DB_PORT#/#DB_PREFIX#meta"
 [[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"

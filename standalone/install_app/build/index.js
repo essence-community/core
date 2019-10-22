@@ -11,10 +11,11 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -55,7 +56,6 @@ var __importStar = (this && this.__importStar) || function (mod) {
     result["default"] = mod;
     return result;
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var path_1 = __importDefault(require("path"));
@@ -120,7 +120,7 @@ electron_1.ipcMain.on('check_install_path', function (event, arg) {
         event.sender.send('check_install_path', error.message);
     }
 });
-electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
+electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
     var config, db, error_1;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -213,7 +213,7 @@ function exec(command, options) {
         });
     });
 }
-electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
+electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
     var config, db, installDir, configFiles, configReplaces, _loop_1, _i, configFiles_1, fileName, packageJson, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -266,18 +266,18 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this,
             case 12:
                 _a.sent();
                 progress(event, 9, 'Creating core database...');
-                return [4 /*yield*/, CreateSQLDatabase(db, 'core', 's_su')];
+                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')];
             case 13:
                 _a.sent();
-                progress(event, 12, 'Creating core_auth database...');
-                return [4 /*yield*/, CreateSQLDatabase(db, 'core_auth', 's_su')];
+                progress(event, 12, 'Creating meta database...');
+                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')];
             case 14:
                 _a.sent();
-                progress(event, 15, 'Migrating core...');
+                progress(event, 15, 'Migrating meta...');
                 return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
             case 15:
                 _a.sent();
-                progress(event, 20, 'Migrating core_auth...');
+                progress(event, 20, 'Migrating auth...');
                 return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
             case 16:
                 _a.sent();
@@ -370,6 +370,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this,
                     ['#DB_PORT#', config.dbPort],
                     ['#SERVER_HOST#', config.serverHost],
                     ['#SERVER_IP#', config.serverIp],
+                    ['#DB_PREFIX#', config.dbPrefix]
                 ];
                 _loop_1 = function (fileName) {
                     var fileContent = fs_1.default.readFileSync(path_1.default.resolve(__dirname, '..', '..', 'config', fileName), { encoding: 'utf-8' });
@@ -393,7 +394,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this,
                 progress(event, 90, 'Installing server dependencies...');
                 progress(event, 95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
-                packageJson.nodemonConfig.env = __assign({}, packageJson.nodemonConfig.env, { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
+                packageJson.nodemonConfig.env = __assign(__assign({}, packageJson.nodemonConfig.env), { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress(event, 98, 'Finishing...');
                 setTimeout(function () { return progress(event, 100, ''); });

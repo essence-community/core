@@ -30,6 +30,7 @@ export interface InstallConfig {
     dbPort?: string
     dbUsename?: string
     dbPassword?: string
+    dbPrefix?: string
 }
 
 const defaultConfig: InstallConfig = {
@@ -41,6 +42,7 @@ const defaultConfig: InstallConfig = {
     dbPort: "5432",
     dbUsename: "postgres",
     dbPassword: "postgres",
+    dbPrefix: "core_",
 }
 
 const App = () => {

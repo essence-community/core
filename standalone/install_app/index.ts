@@ -171,19 +171,19 @@ ipcMain.on('install', async (event, arg) => {
                 
         progress(event, 9, 'Creating core database...')
 
-        await CreateSQLDatabase(db, 'core', 's_su')
+        await CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')
 
-        progress(event, 12, 'Creating core_auth database...')
+        progress(event, 12, 'Creating meta database...')
 
-        await CreateSQLDatabase(db, 'core_auth', 's_su')
+        await CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')
 
-        progress(event, 15, 'Migrating core...')
+        progress(event, 15, 'Migrating meta...')
 
         await exec(
             path.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : ''))
         )
 
-        progress(event, 20, 'Migrating core_auth...')
+        progress(event, 20, 'Migrating auth...')
 
         await exec(
             path.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : ''))
@@ -262,6 +262,7 @@ ipcMain.on('install', async (event, arg) => {
             ['#DB_PORT#', config.dbPort],
             ['#SERVER_HOST#', config.serverHost],
             ['#SERVER_IP#', config.serverIp],
+            ['#DB_PREFIX#', config.dbPrefix]
         ]
 
         for (const fileName of configFiles) {

@@ -46,6 +46,9 @@ var LocationSetup = function (props) {
                 react_1.default.createElement(core_1.TextField, { flex: 1, label: "Password", value: props.config.dbUsename, onChange: function (e) { return props.setConfig({
                         dbUsename: e.target.value
                     }); }, mb: "1rem" })),
+            react_1.default.createElement(core_1.TextField, { flex: 1, label: "Database prefix", value: props.config.dbPrefix, onChange: function (e) { return props.setConfig({
+                    dbPrefix: e.target.value
+                }); }, mb: "1rem" }),
             react_1.default.createElement(core_1.C3, { color: function (c) { return c.accent.orange.hex(); }, children: (react_1.default.createElement(core_1.Flexbox, { alignItems: "center" },
                     react_1.default.createElement(core_1.Icon, { size: "1.5rem", pr: "0.5rem", type: function (t) { return t.outline.alertTriangle; } }),
                     " Credential should be with admin access. Installaction process will create core users")) }),

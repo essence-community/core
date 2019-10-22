@@ -70,6 +70,15 @@ const LocationSetup = (props: StepProps) => {
                         mb="1rem"
                     />
                 </Flexbox>
+                <TextField
+                    flex={1}
+                    label="Database prefix"
+                    value={props.config.dbPrefix}
+                    onChange={e => props.setConfig({
+                        dbPrefix: e.target.value
+                    })}
+                    mb="1rem"
+                />
                 <C3 
                     color={c => c.accent.orange.hex()}
                     children={(
