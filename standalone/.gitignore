@@ -1,0 +1,7 @@
+.vs
+*.log
+node_modules
+*.lock
+core
+core-backend
+core-frontend

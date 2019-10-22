@@ -1,0 +1,16 @@
+[[data]]
+ck_id = "core"
+cv_path = "/api"
+cv_description = "Основныенастройкиметаинформации"
+ck_d_plugin = "CorePGContext"
+
+  [data.cct_params]
+  debug = true
+  disableCache = true
+  poolMax = 100
+  connectString = "postgres://s_su:s_su@#DB_HOST#:#DB_PORT#/core"
+[[data]]
+[data."$$indexCreated"]
+fieldName = "ck_id"
+unique = true
+sparse = false
