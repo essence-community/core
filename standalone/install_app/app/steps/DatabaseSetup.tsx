@@ -94,7 +94,7 @@ const LocationSetup = (props: StepProps) => {
 
                 <Divider mt="1rem" mb="1rem" />
 
-                <C3 color={c => c.light.hex()}>Installation will create "core" and "core_auth" databases</C3>
+                <C3 color={c => c.light.hex()}>Installation will create "{props.config.dbPrefix}meta" and "{props.config.dbPrefix}auth" databases</C3>
             </Block>
             <Panel align="bottom">
                 <Flexbox justifyContent="flex-end">

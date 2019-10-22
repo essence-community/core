@@ -221,7 +221,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 config = JSON.parse(arg);
                 _a.label = 1;
             case 1:
-                _a.trys.push([1, 36, , 37]);
+                _a.trys.push([1, 34, , 35]);
                 db = new pg_1.default.Client({
                     host: config.dbHost,
                     port: parseInt(config.dbPort),
@@ -270,82 +270,81 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
             case 13:
                 _a.sent();
                 progress(event, 12, 'Creating meta database...');
-                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')];
+                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')
+                    // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
+                    // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
+                ];
             case 14:
                 _a.sent();
-                progress(event, 15, 'Migrating meta...');
-                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
+                // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
+                // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
+                progress(event, 15, 'Fetching core-frontend...');
+                return [4 /*yield*/, exec('yarn frontend:clone')];
             case 15:
                 _a.sent();
-                progress(event, 20, 'Migrating auth...');
-                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
+                progress(event, 18, 'Fetching core-backend...');
+                return [4 /*yield*/, exec('yarn backend:clone')];
             case 16:
                 _a.sent();
-                return [4 /*yield*/, exec('rm -R ' + path_1.default.resolve(__dirname, '..', '..', 'core-frontend'))];
+                progress(event, 20, 'Migrating meta...');
+                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
             case 17:
                 _a.sent();
-                return [4 /*yield*/, exec('rm -R ' + path_1.default.resolve(__dirname, '..', '..', 'core-backend'))];
+                progress(event, 25, 'Migrating auth...');
+                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
             case 18:
                 _a.sent();
-                progress(event, 24, 'Fetching core-frontend...');
-                return [4 /*yield*/, exec('git clone https://github.com/essence-community/core-frontend.git')];
+                progress(event, 28, 'Installing backend dependencies...');
+                return [4 /*yield*/, exec('yarn backend:install')];
             case 19:
                 _a.sent();
-                progress(event, 26, 'Fetching core-backend...');
-                return [4 /*yield*/, exec('git clone https://github.com/essence-community/core-backend.git')];
+                progress(event, 30, 'Building plugins...');
+                return [4 /*yield*/, exec('yarn backend:build:plugins')];
             case 20:
                 _a.sent();
-                progress(event, 28, 'Installing backend dependencies...');
-                return [4 /*yield*/, exec('yarn yarn:backend:install')];
+                progress(event, 32, 'Building contexts...');
+                return [4 /*yield*/, exec('yarn backend:build:contexts')];
             case 21:
                 _a.sent();
-                progress(event, 30, 'Building plugins...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:plugins')];
+                progress(event, 34, 'Building events...');
+                return [4 /*yield*/, exec('yarn backend:build:events')];
             case 22:
                 _a.sent();
-                progress(event, 32, 'Building contexts...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:contexts')];
+                progress(event, 36, 'Building schedulers...');
+                return [4 /*yield*/, exec('yarn backend:build:schedulers')];
             case 23:
                 _a.sent();
-                progress(event, 34, 'Building events...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:events')];
+                progress(event, 38, 'Building providers...');
+                return [4 /*yield*/, exec('yarn backend:build:providers')];
             case 24:
                 _a.sent();
-                progress(event, 36, 'Building schedulers...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:schedulers')];
+                progress(event, 40, 'Building server...');
+                return [4 /*yield*/, exec('yarn backend:build:server')];
             case 25:
                 _a.sent();
-                progress(event, 38, 'Building providers...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:providers')];
+                progress(event, 42, 'Building plugininf...');
+                return [4 /*yield*/, exec('yarn backend:build:plugininf')];
             case 26:
                 _a.sent();
-                progress(event, 40, 'Building server...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:server')];
+                progress(event, 44, 'Building libs...');
+                return [4 /*yield*/, exec('yarn backend:build:libs')];
             case 27:
                 _a.sent();
-                progress(event, 42, 'Building plugininf...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:plugininf')];
+                progress(event, 46, 'Copyring certs...');
+                return [4 /*yield*/, exec('yarn backend:build:cert')];
             case 28:
                 _a.sent();
-                progress(event, 44, 'Building libs...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:libs')];
+                progress(event, 48, 'Copyring package...');
+                return [4 /*yield*/, exec('yarn backend:build:copy')];
             case 29:
                 _a.sent();
-                progress(event, 46, 'Copyring certs...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:cert')];
+                progress(event, 50, 'Installing frontend dependencies...');
+                return [4 /*yield*/, exec('yarn frontend:install')];
             case 30:
                 _a.sent();
-                progress(event, 48, 'Copyring package...');
-                return [4 /*yield*/, exec('yarn yarn:backend:build:copy')];
-            case 31:
-                _a.sent();
-                progress(event, 50, 'Installing frontend dependencies...');
-                return [4 /*yield*/, exec('yarn yarn:frontend:install')];
-            case 32:
-                _a.sent();
                 progress(event, 55, 'Building frontend package...');
-                return [4 /*yield*/, exec('yarn yarn:frontend:build')];
-            case 33:
+                return [4 /*yield*/, exec('yarn frontend:build')];
+            case 31:
                 _a.sent();
                 progress(event, 75, 'Creating catalogs...');
                 installDir = getInstallDir(config);
@@ -385,11 +384,11 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 }
                 progress(event, 84, 'Moving backend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'bin') + "/* " + installDir)];
-            case 34:
+            case 32:
                 _a.sent();
                 progress(event, 86, 'Moving frontend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-frontend', 'build') + "/* " + installDir + "/public")];
-            case 35:
+            case 33:
                 _a.sent();
                 progress(event, 90, 'Installing server dependencies...');
                 progress(event, 95, 'Patching package...');
@@ -398,12 +397,12 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress(event, 98, 'Finishing...');
                 setTimeout(function () { return progress(event, 100, ''); });
-                return [3 /*break*/, 37];
-            case 36:
+                return [3 /*break*/, 35];
+            case 34:
                 error_4 = _a.sent();
                 event.sender.send('install_error', 'FATAL ERROR: ' + error_4.message);
-                return [3 /*break*/, 37];
-            case 37: return [2 /*return*/];
+                return [3 /*break*/, 35];
+            case 35: return [2 /*return*/];
         }
     });
 }); });

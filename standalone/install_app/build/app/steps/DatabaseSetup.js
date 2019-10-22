@@ -53,7 +53,12 @@ var LocationSetup = function (props) {
                     react_1.default.createElement(core_1.Icon, { size: "1.5rem", pr: "0.5rem", type: function (t) { return t.outline.alertTriangle; } }),
                     " Credential should be with admin access. Installaction process will create core users")) }),
             react_1.default.createElement(core_1.Divider, { mt: "1rem", mb: "1rem" }),
-            react_1.default.createElement(core_1.C3, { color: function (c) { return c.light.hex(); } }, "Installation will create \"core\" and \"core_auth\" databases")),
+            react_1.default.createElement(core_1.C3, { color: function (c) { return c.light.hex(); } },
+                "Installation will create \"",
+                props.config.dbPrefix,
+                "meta\" and \"",
+                props.config.dbPrefix,
+                "auth\" databases")),
         react_1.default.createElement(core_1.Panel, { align: "bottom" },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
                 react_1.default.createElement(core_1.Button, { color: function (c) { return c.accent.orange.hex(); }, onClick: function () {

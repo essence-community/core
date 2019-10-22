@@ -176,63 +176,62 @@ ipcMain.on('install', async (event, arg) => {
         progress(event, 12, 'Creating meta database...')
 
         await CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')
+        
+        // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
+        // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
 
-        progress(event, 15, 'Migrating meta...')
+        progress(event, 15, 'Fetching core-frontend...')
+
+        await exec('yarn frontend:clone')
+
+        progress(event, 18, 'Fetching core-backend...')
+
+        await exec('yarn backend:clone')
+
+        progress(event, 20, 'Migrating meta...')
 
         await exec(
             path.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : ''))
         )
 
-        progress(event, 20, 'Migrating auth...')
+        progress(event, 25, 'Migrating auth...')
 
         await exec(
             path.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : ''))
         )
 
-        await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
-        await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
-
-        progress(event, 24, 'Fetching core-frontend...')
-
-        await exec('git clone https://github.com/essence-community/core-frontend.git')
-
-        progress(event, 26, 'Fetching core-backend...')
-
-        await exec('git clone https://github.com/essence-community/core-backend.git')
-
-
         progress(event, 28, 'Installing backend dependencies...')
 
-        await exec('yarn yarn:backend:install')
+        await exec('yarn backend:install')
 
         progress(event, 30, 'Building plugins...')
-        await exec('yarn yarn:backend:build:plugins')
+        await exec('yarn backend:build:plugins')
         progress(event, 32, 'Building contexts...')
-        await exec('yarn yarn:backend:build:contexts')
+        await exec('yarn backend:build:contexts')
         progress(event, 34, 'Building events...')
-        await exec('yarn yarn:backend:build:events')
+        await exec('yarn backend:build:events')
         progress(event, 36, 'Building schedulers...')
-        await exec('yarn yarn:backend:build:schedulers')
+        await exec('yarn backend:build:schedulers')
         progress(event, 38, 'Building providers...')
-        await exec('yarn yarn:backend:build:providers')
+        await exec('yarn backend:build:providers')
         progress(event, 40, 'Building server...')
-        await exec('yarn yarn:backend:build:server')
+        await exec('yarn backend:build:server')
         progress(event, 42, 'Building plugininf...')
-        await exec('yarn yarn:backend:build:plugininf')
+        await exec('yarn backend:build:plugininf')
         progress(event, 44, 'Building libs...')
-        await exec('yarn yarn:backend:build:libs')
+        await exec('yarn backend:build:libs')
         progress(event, 46, 'Copyring certs...')
-        await exec('yarn yarn:backend:build:cert')
+        await exec('yarn backend:build:cert')
         progress(event, 48, 'Copyring package...')
-        await exec('yarn yarn:backend:build:copy')
+        await exec('yarn backend:build:copy')
 
         progress(event, 50, 'Installing frontend dependencies...')
 
-        await exec('yarn yarn:frontend:install')
+        await exec('yarn frontend:install')
 
         progress(event, 55, 'Building frontend package...')
 
-        await exec('yarn yarn:frontend:build')
+        await exec('yarn frontend:build')
 
         progress(event, 75, 'Creating catalogs...')
 
