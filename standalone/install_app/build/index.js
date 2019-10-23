@@ -11,10 +11,11 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -48,7 +49,6 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var fs_1 = __importDefault(require("fs"));
@@ -172,19 +172,15 @@ function exec(command, options) {
         });
     });
 }
-electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
-    var config, e, appPath, dir, error_3;
+electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+    var config, appPath, dir, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
                 config = JSON.parse(arg);
-                return [4 /*yield*/, exec("\n    cd /\n    ls\n    ")];
+                _a.label = 1;
             case 1:
-                e = _a.sent();
-                console.log(e);
-                _a.label = 2;
-            case 2:
-                _a.trys.push([2, 4, , 5]);
+                _a.trys.push([1, 3, , 4]);
                 appPath = getInstallDir(config);
                 if (!fs_1.default.existsSync(appPath)) {
                     fs_1.default.mkdirSync(appPath);
@@ -197,19 +193,19 @@ electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(_this, v
                     throw new Error('Install directory must be empty!');
                 }
                 return [4 /*yield*/, checkJavaVersion()];
-            case 3:
+            case 2:
                 _a.sent();
                 event.sender.send('check');
-                return [3 /*break*/, 5];
-            case 4:
+                return [3 /*break*/, 4];
+            case 3:
                 error_3 = _a.sent();
                 event.sender.send('check', error_3.message);
-                return [3 /*break*/, 5];
-            case 5: return [2 /*return*/];
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
     });
 }); });
-electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
+electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
     var config, db, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -241,8 +237,8 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
         }
     });
 }); });
-electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
-    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, i, _f, _g, cmd, installDir, _h, _j, dir, configFiles, configReplaces, _loop_1, _k, configFiles_1, fileName, packageJson, error_5;
+electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, shellData, i, _f, _g, cmd, installDir, _h, _j, dir, configFiles, configReplaces, _loop_1, _k, configFiles_1, fileName, packageJson, error_5;
     return __generator(this, function (_l) {
         switch (_l.label) {
             case 0:
@@ -328,7 +324,11 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this,
                 if (!(_d < _e.length)) return [3 /*break*/, 21];
                 dir = _e[_d];
                 progress_1(dir == "dbms" ? 20 : 25, "Migrating " + (dir == "dbms" ? 'meta' : 'auth') + "...");
-                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', dir, process.platform === 'win32' ? 'update.bat' : 'update'))];
+                dir = path_1.default.resolve(__dirname, '..', '..', 'core-backend', dir);
+                shellData = fs_1.default.readFileSync(path_1.default.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), {
+                    encoding: 'utf-8'
+                });
+                return [4 /*yield*/, exec("cd " + dir + "\r\n" + shellData)];
             case 19:
                 _l.sent();
                 _l.label = 20;
@@ -410,7 +410,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this,
                 progress_1(90, 'Installing server dependencies...');
                 progress_1(95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
-                packageJson.nodemonConfig.env = __assign({}, packageJson.nodemonConfig.env, { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
+                packageJson.nodemonConfig.env = __assign(__assign({}, packageJson.nodemonConfig.env), { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress_1(98, 'Finishing...');
                 setTimeout(function () { return progress_1(100, ''); });

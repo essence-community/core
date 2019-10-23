@@ -8,7 +8,7 @@
         "build:watch": "tsc -w & webpack --watch",
         "start": "electron ./install_app/build",
         "backend:clone": "git clone https://github.com/essence-community/core-backend.git",
-        "frontend:clone": "git clone https://github.com/essence-community/core-frontend.git",
+        "backend:install": "cd ./core-backend && yarn",
         "backend:build:plugins": "cd ./core-backend && gulp plugins",
         "backend:build:contexts": "cd ./core-backend && gulp contexts",
         "backend:build:events": "cd ./core-backend && gulp events",
@@ -19,6 +19,7 @@
         "backend:build:libs": "cd ./core-backend && gulp libs",
         "backend:build:cert": "cd ./core-backend && gulp cert",
         "backend:build:copy": "cd ./core-backend && gulp copy",
+        "frontend:clone": "git clone https://github.com/essence-community/core-frontend.git",
         "frontend:install": "cd ./core-frontend && yarn",
         "frontend:build": "cd ./core-frontend && yarn build"
     },
