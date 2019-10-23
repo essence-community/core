@@ -73,6 +73,8 @@ async function CreateSQLUser(db: pg.Client, user: string, login: boolean = false
     } catch (error) {
         if (error.code != 42710) {
             throw error
+        } else {
+            console.warn(error.message)
         }
     }
 }
@@ -303,6 +305,7 @@ ipcMain.on('install', async (event, arg) => {
         setTimeout(() => progress(100, ''))
 
     } catch (error) {
+        console.error(error)
         event.sender.send('install_error', 'FATAL ERROR: ' + error.message)
     }
 })

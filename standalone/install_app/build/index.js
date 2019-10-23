@@ -129,6 +129,9 @@ function CreateSQLUser(db, user, login, su) {
                     if (error_1.code != 42710) {
                         throw error_1;
                     }
+                    else {
+                        console.warn(error_1.message);
+                    }
                     return [3 /*break*/, 3];
                 case 3: return [2 /*return*/];
             }
@@ -417,6 +420,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 return [3 /*break*/, 32];
             case 31:
                 error_5 = _l.sent();
+                console.error(error_5);
                 event.sender.send('install_error', 'FATAL ERROR: ' + error_5.message);
                 return [3 /*break*/, 32];
             case 32: return [2 /*return*/];
