@@ -231,7 +231,7 @@ ipcMain.on('install', async (event, arg) => {
         await exec('yarn backend:install')
 
         let i = 0;
-        for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "certs", "copy"]) {
+        for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
             progress(30 + i++ * 2, `Running task ${cmd}...`)
             await exec(`yarn backend:build:${cmd}`)
         }
