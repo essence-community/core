@@ -245,14 +245,14 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
     });
 }); });
 electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, shellData, i, _f, _g, cmd, installDir, _h, _j, dir, configFiles, configReplaces, _loop_1, _k, configFiles_1, fileName, packageJson, error_5;
-    return __generator(this, function (_l) {
-        switch (_l.label) {
+    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, shellData, installDir, _f, _g, dir, configFiles, configReplaces, _loop_1, _h, configFiles_1, fileName, packageJson, error_5;
+    return __generator(this, function (_j) {
+        switch (_j.label) {
             case 0:
                 config = JSON.parse(arg);
-                _l.label = 1;
+                _j.label = 1;
             case 1:
-                _l.trys.push([1, 31, , 32]);
+                _j.trys.push([1, 28, , 29]);
                 db = new pg_1.default.Client({
                     host: config.dbHost,
                     port: parseInt(config.dbPort),
@@ -264,32 +264,32 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(1, 'Connecting postgres...');
                 return [4 /*yield*/, db.connect()];
             case 2:
-                _l.sent();
+                _j.sent();
                 progress_1(3, 'Creating roles...');
                 return [4 /*yield*/, CreateSQLUser(db, 's_su', true, true)];
             case 3:
-                _l.sent();
+                _j.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mc', true)];
             case 4:
-                _l.sent();
+                _j.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mp')];
             case 5:
-                _l.sent();
+                _j.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ac', true)];
             case 6:
-                _l.sent();
+                _j.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ap')];
             case 7:
-                _l.sent();
+                _j.sent();
                 _i = 0, _a = ["s_su", "s_mc", "s_ac"];
-                _l.label = 8;
+                _j.label = 8;
             case 8:
                 if (!(_i < _a.length)) return [3 /*break*/, 11];
                 user = _a[_i];
                 return [4 /*yield*/, db.query("ALTER USER " + user + " WITH PASSWORD '" + user + "';")];
             case 9:
-                _l.sent();
-                _l.label = 10;
+                _j.sent();
+                _j.label = 10;
             case 10:
                 _i++;
                 return [3 /*break*/, 8];
@@ -297,18 +297,18 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(6, 'Settings search paths...');
                 return [4 /*yield*/, db.query("ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;")];
             case 12:
-                _l.sent();
+                _j.sent();
                 return [4 /*yield*/, db.query("ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;")];
             case 13:
-                _l.sent();
+                _j.sent();
                 progress_1(9, 'Creating core database...');
                 return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')];
             case 14:
-                _l.sent();
+                _j.sent();
                 progress_1(12, 'Creating meta database...');
                 return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')];
             case 15:
-                _l.sent();
+                _j.sent();
                 progress_1(13, 'Clearing source directories...');
                 for (_b = 0, _c = ["core-frontend", "core-backend"]; _b < _c.length; _b++) {
                     dir = _c[_b];
@@ -320,13 +320,13 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(15, 'Fetching core-frontend...');
                 return [4 /*yield*/, exec('yarn frontend:clone')];
             case 16:
-                _l.sent();
+                _j.sent();
                 progress_1(18, 'Fetching core-backend...');
                 return [4 /*yield*/, exec('yarn backend:clone')];
             case 17:
-                _l.sent();
+                _j.sent();
                 _d = 0, _e = ["dbms", "dbms_auth"];
-                _l.label = 18;
+                _j.label = 18;
             case 18:
                 if (!(_d < _e.length)) return [3 /*break*/, 21];
                 dir = _e[_d];
@@ -337,43 +337,43 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 });
                 return [4 /*yield*/, exec("cd " + dir + (process.platform === 'win32' ? '\r' : '') + "\n" + shellData)];
             case 19:
-                _l.sent();
-                _l.label = 20;
+                _j.sent();
+                _j.label = 20;
             case 20:
                 _d++;
                 return [3 /*break*/, 18];
             case 21:
                 progress_1(28, 'Installing backend dependencies...');
-                return [4 /*yield*/, exec('yarn backend:install')];
+                return [4 /*yield*/, exec('yarn backend:install')
+                    // let i = 0;
+                    // for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
+                    //     progress(30 + i++ * 2, `Running task ${cmd}...`)
+                    //     await exec(`yarn backend:build:${cmd}`)
+                    // }
+                ];
             case 22:
-                _l.sent();
-                i = 0;
-                _f = 0, _g = ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"];
-                _l.label = 23;
+                _j.sent();
+                // let i = 0;
+                // for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
+                //     progress(30 + i++ * 2, `Running task ${cmd}...`)
+                //     await exec(`yarn backend:build:${cmd}`)
+                // }
+                progress_1(32, 'Building backend...');
+                return [4 /*yield*/, exec("yarn backend:build")];
             case 23:
-                if (!(_f < _g.length)) return [3 /*break*/, 26];
-                cmd = _g[_f];
-                progress_1(30 + i++ * 2, "Running task " + cmd + "...");
-                return [4 /*yield*/, exec("yarn backend:build:" + cmd)];
-            case 24:
-                _l.sent();
-                _l.label = 25;
-            case 25:
-                _f++;
-                return [3 /*break*/, 23];
-            case 26:
+                _j.sent();
                 progress_1(50, 'Installing frontend dependencies...');
                 return [4 /*yield*/, exec('yarn frontend:install')];
-            case 27:
-                _l.sent();
+            case 24:
+                _j.sent();
                 progress_1(55, 'Building frontend package...');
                 return [4 /*yield*/, exec('yarn frontend:build')];
-            case 28:
-                _l.sent();
+            case 25:
+                _j.sent();
                 progress_1(75, 'Creating catalogs...');
                 installDir = getInstallDir(config);
-                for (_h = 0, _j = ["config", "logs", "tmp", "public"]; _h < _j.length; _h++) {
-                    dir = _j[_h];
+                for (_f = 0, _g = ["config", "logs", "tmp", "public"]; _f < _g.length; _f++) {
+                    dir = _g[_f];
                     fs_1.default.mkdirSync(path_1.default.resolve(installDir, dir));
                 }
                 progress_1(80, 'Creating configs...');
@@ -402,18 +402,18 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                     });
                     fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'config', fileName), fileContent, { encoding: "utf-8" });
                 };
-                for (_k = 0, configFiles_1 = configFiles; _k < configFiles_1.length; _k++) {
-                    fileName = configFiles_1[_k];
+                for (_h = 0, configFiles_1 = configFiles; _h < configFiles_1.length; _h++) {
+                    fileName = configFiles_1[_h];
                     _loop_1(fileName);
                 }
                 progress_1(84, 'Moving backend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'bin') + "/* " + installDir)];
-            case 29:
-                _l.sent();
+            case 26:
+                _j.sent();
                 progress_1(86, 'Moving frontend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-frontend', 'build') + "/* " + installDir + "/public")];
-            case 30:
-                _l.sent();
+            case 27:
+                _j.sent();
                 progress_1(90, 'Installing server dependencies...');
                 progress_1(95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
@@ -421,13 +421,13 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress_1(98, 'Finishing...');
                 setTimeout(function () { return progress_1(100, ''); });
-                return [3 /*break*/, 32];
-            case 31:
-                error_5 = _l.sent();
+                return [3 /*break*/, 29];
+            case 28:
+                error_5 = _j.sent();
                 console.error(error_5);
                 event.sender.send('install_error', 'FATAL ERROR: ' + error_5.message);
-                return [3 /*break*/, 32];
-            case 32: return [2 /*return*/];
+                return [3 /*break*/, 29];
+            case 29: return [2 /*return*/];
         }
     });
 }); });

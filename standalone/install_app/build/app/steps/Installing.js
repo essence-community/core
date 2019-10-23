@@ -42,6 +42,6 @@ var Installing = function (props) {
                         react_1.default.createElement(core_1.Icon, { size: "1.5rem", pr: "0.5rem", type: function (t) { return t.outline.alertTriangle; } }),
                         " ",
                         error))))),
-        react_1.default.createElement(core_1.Panel, { align: "bottom" })));
+        react_1.default.createElement(core_1.Panel, { align: "bottom", css: { borderLeft: 0, borderRight: 0, borderBottom: 0 } })));
 };
 exports.default = Installing;

@@ -73,7 +73,7 @@ const GeneralSetup = (props: StepProps) => {
                     />
                 </Flexbox>
             </Block>
-            <Panel align="bottom">
+            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
                 <Flexbox justifyContent="flex-end">
                     <Button
                         onClick={() => {

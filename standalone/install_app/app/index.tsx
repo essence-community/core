@@ -5,11 +5,13 @@ import dark from "@flow-ui/core/misc/themes/dark"
 import GeneralSetup from './steps/GeneralSetup'
 import DatabaseSetup from './steps/DatabaseSetup'
 import Installing from './steps/Installing'
+import Finish from './steps/Finish'
 
 const steps = [
     GeneralSetup,
     DatabaseSetup,
-    Installing
+    Installing,
+    Finish
 ]
 export interface StepProps {
     setTitle: (value: string) => void

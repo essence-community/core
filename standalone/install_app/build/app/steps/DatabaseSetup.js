@@ -59,7 +59,7 @@ var LocationSetup = function (props) {
                 "meta\" and \"",
                 props.config.dbPrefix,
                 "auth\" databases")),
-        react_1.default.createElement(core_1.Panel, { align: "bottom" },
+        react_1.default.createElement(core_1.Panel, { align: "bottom", css: { borderLeft: 0, borderRight: 0, borderBottom: 0 } },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
                 react_1.default.createElement(core_1.Button, { color: function (c) { return c.accent.orange.hex(); }, onClick: function () {
                         electron_1.ipcRenderer.send('check_database_connection', JSON.stringify(props.config));

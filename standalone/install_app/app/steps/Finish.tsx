@@ -13,7 +13,7 @@ const Finish = (props: StepProps) => {
             <Block p="1rem" pt="5rem">
                 
             </Block>
-            <Panel align="bottom">
+            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
                 
             </Panel>
         </Block>

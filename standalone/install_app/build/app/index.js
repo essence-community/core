@@ -28,10 +28,12 @@ var dark_1 = __importDefault(require("@flow-ui/core/misc/themes/dark"));
 var GeneralSetup_1 = __importDefault(require("./steps/GeneralSetup"));
 var DatabaseSetup_1 = __importDefault(require("./steps/DatabaseSetup"));
 var Installing_1 = __importDefault(require("./steps/Installing"));
+var Finish_1 = __importDefault(require("./steps/Finish"));
 var steps = [
     GeneralSetup_1.default,
     DatabaseSetup_1.default,
-    Installing_1.default
+    Installing_1.default,
+    Finish_1.default
 ];
 var defaultConfig = {
     serverHost: 'core.localhost',

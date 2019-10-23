@@ -49,7 +49,7 @@ var GeneralSetup = function (props) {
                             appPort: e.target.value
                         });
                     }, mb: "1rem" }))),
-        react_1.default.createElement(core_1.Panel, { align: "bottom" },
+        react_1.default.createElement(core_1.Panel, { align: "bottom", css: { borderLeft: 0, borderRight: 0, borderBottom: 0 } },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
                 react_1.default.createElement(core_1.Button, { onClick: function () {
                         electron_1.ipcRenderer.send('check', JSON.stringify(props.config));
