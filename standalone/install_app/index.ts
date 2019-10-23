@@ -6,9 +6,6 @@ import rimraf from 'rimraf'
 import { InstallConfig } from './app'
 const childProcess = require('child_process')
 
-node
-require('child_process').exec('update', {}, (error, stdout, stderr) => console.error(error))
-
 let win: Electron.BrowserWindow | null
 
 const createWindow = () => {
