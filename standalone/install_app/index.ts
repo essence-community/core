@@ -213,11 +213,13 @@ ipcMain.on('install', async (event, arg) => {
         progress(18, 'Fetching core-backend...')
         await exec('yarn backend:clone')
 
-        for (const dir of ["dbms", "dbms_auth"]) {
+        for (let dir of ["dbms", "dbms_auth"]) {
             progress(dir == "dbms" ? 20 : 25, `Migrating ${dir == "dbms" ? 'meta' : 'auth'}...`)
-            await exec(
-                path.resolve(__dirname, '..', '..', 'core-backend', dir, process.platform === 'win32' ? 'update.bat' : 'update')
-            )
+            dir = path.resolve(__dirname, '..', '..', 'core-backend', dir)
+            const shellData = fs.readFileSync(path.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), { 
+                encoding: 'utf-8' 
+            })
+            await exec(`cd ${dir}\r\n${shellData}`)
         }
 
         progress(28, 'Installing backend dependencies...')
