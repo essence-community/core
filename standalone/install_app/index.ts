@@ -96,6 +96,8 @@ async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
     } catch (error) {
         if (error.code != 42710) {
             throw error
+        } else {
+            console.warn(error.message)
         }
     }
 }

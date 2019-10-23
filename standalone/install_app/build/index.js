@@ -11,11 +11,10 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -49,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var fs_1 = __importDefault(require("fs"));
@@ -157,6 +157,9 @@ function CreateSQLDatabase(db, name, user) {
                     if (error_2.code != 42710) {
                         throw error_2;
                     }
+                    else {
+                        console.warn(error_2.message);
+                    }
                     return [3 /*break*/, 4];
                 case 4: return [2 /*return*/];
             }
@@ -175,7 +178,7 @@ function exec(command, options) {
         });
     });
 }
-electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
     var config, appPath, dir, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -208,7 +211,7 @@ electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, 
         }
     });
 }); });
-electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
     var config, db, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -240,7 +243,7 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
         }
     });
 }); });
-electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
     var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, shellData, i, _f, _g, cmd, installDir, _h, _j, dir, configFiles, configReplaces, _loop_1, _k, configFiles_1, fileName, packageJson, error_5;
     return __generator(this, function (_l) {
         switch (_l.label) {
@@ -413,7 +416,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(90, 'Installing server dependencies...');
                 progress_1(95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
-                packageJson.nodemonConfig.env = __assign(__assign({}, packageJson.nodemonConfig.env), { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
+                packageJson.nodemonConfig.env = __assign({}, packageJson.nodemonConfig.env, { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress_1(98, 'Finishing...');
                 setTimeout(function () { return progress_1(100, ''); });
