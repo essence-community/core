@@ -208,7 +208,11 @@ ipcMain.on('install', async (event, arg) => {
         for (let dir of ["core-frontend", "core-backend"]) {
             dir = path.resolve(__dirname, '..', '..', dir)
             if (fs.existsSync(dir)) {
-                rimraf.sync(dir)
+                if (process.platform === 'win32') {
+                    rimraf.sync(dir)
+                } else {
+                    await exec(`rm -Rf ${dir}`)
+                }
             }
         }
 
@@ -221,20 +225,18 @@ ipcMain.on('install', async (event, arg) => {
         for (let dir of ["dbms", "dbms_auth"]) {
             progress(dir == "dbms" ? 20 : 25, `Migrating ${dir == "dbms" ? 'meta' : 'auth'}...`)
             dir = path.resolve(__dirname, '..', '..', 'core-backend', dir)
-            const shellData = fs.readFileSync(path.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), { 
-                encoding: 'utf-8' 
-            })
-            await exec(`cd ${dir}${process.platform === 'win32' ? '\r' : ''}\n${shellData}`)
+        
+            if (process.platform === 'win32') {
+                await exec(`cd ${dir}\r\n${fs.readFileSync(path.resolve(dir, 'update.bat'), { 
+                    encoding: 'utf-8' 
+                })}`)
+            } else {
+                await exec(path.resolve(dir, 'update'))
+            }
         }
 
         progress(28, 'Installing backend dependencies...')
         await exec('yarn backend:install')
-
-        // let i = 0;
-        // for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
-        //     progress(30 + i++ * 2, `Running task ${cmd}...`)
-        //     await exec(`yarn backend:build:${cmd}`)
-        // }
 
         progress(32, 'Building backend...')
         await exec(`yarn backend:build`)

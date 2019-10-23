@@ -245,14 +245,14 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
     });
 }); });
 electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, shellData, installDir, _f, _g, dir, configFiles, configReplaces, _loop_1, _h, configFiles_1, fileName, packageJson, error_5;
+    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, installDir, _f, _g, dir, configFiles, configReplaces, _loop_1, _h, configFiles_1, fileName, packageJson, error_5;
     return __generator(this, function (_j) {
         switch (_j.label) {
             case 0:
                 config = JSON.parse(arg);
                 _j.label = 1;
             case 1:
-                _j.trys.push([1, 28, , 29]);
+                _j.trys.push([1, 35, , 36]);
                 db = new pg_1.default.Client({
                     host: config.dbHost,
                     port: parseInt(config.dbPort),
@@ -310,65 +310,69 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
             case 15:
                 _j.sent();
                 progress_1(13, 'Clearing source directories...');
-                for (_b = 0, _c = ["core-frontend", "core-backend"]; _b < _c.length; _b++) {
-                    dir = _c[_b];
-                    dir = path_1.default.resolve(__dirname, '..', '..', dir);
-                    if (fs_1.default.existsSync(dir)) {
-                        rimraf_1.default.sync(dir);
-                    }
-                }
+                _b = 0, _c = ["core-frontend", "core-backend"];
+                _j.label = 16;
+            case 16:
+                if (!(_b < _c.length)) return [3 /*break*/, 20];
+                dir = _c[_b];
+                dir = path_1.default.resolve(__dirname, '..', '..', dir);
+                if (!fs_1.default.existsSync(dir)) return [3 /*break*/, 19];
+                if (!(process.platform === 'win32')) return [3 /*break*/, 17];
+                rimraf_1.default.sync(dir);
+                return [3 /*break*/, 19];
+            case 17: return [4 /*yield*/, exec("rm -Rf " + dir)];
+            case 18:
+                _j.sent();
+                _j.label = 19;
+            case 19:
+                _b++;
+                return [3 /*break*/, 16];
+            case 20:
                 progress_1(15, 'Fetching core-frontend...');
                 return [4 /*yield*/, exec('yarn frontend:clone')];
-            case 16:
+            case 21:
                 _j.sent();
                 progress_1(18, 'Fetching core-backend...');
                 return [4 /*yield*/, exec('yarn backend:clone')];
-            case 17:
+            case 22:
                 _j.sent();
                 _d = 0, _e = ["dbms", "dbms_auth"];
-                _j.label = 18;
-            case 18:
-                if (!(_d < _e.length)) return [3 /*break*/, 21];
+                _j.label = 23;
+            case 23:
+                if (!(_d < _e.length)) return [3 /*break*/, 28];
                 dir = _e[_d];
                 progress_1(dir == "dbms" ? 20 : 25, "Migrating " + (dir == "dbms" ? 'meta' : 'auth') + "...");
                 dir = path_1.default.resolve(__dirname, '..', '..', 'core-backend', dir);
-                shellData = fs_1.default.readFileSync(path_1.default.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), {
-                    encoding: 'utf-8'
-                });
-                return [4 /*yield*/, exec("cd " + dir + (process.platform === 'win32' ? '\r' : '') + "\n" + shellData)];
-            case 19:
+                if (!(process.platform === 'win32')) return [3 /*break*/, 25];
+                return [4 /*yield*/, exec("cd " + dir + "\r\n" + fs_1.default.readFileSync(path_1.default.resolve(dir, 'update.bat'), {
+                        encoding: 'utf-8'
+                    }))];
+            case 24:
                 _j.sent();
-                _j.label = 20;
-            case 20:
+                return [3 /*break*/, 27];
+            case 25: return [4 /*yield*/, exec(path_1.default.resolve(dir, 'update'))];
+            case 26:
+                _j.sent();
+                _j.label = 27;
+            case 27:
                 _d++;
-                return [3 /*break*/, 18];
-            case 21:
+                return [3 /*break*/, 23];
+            case 28:
                 progress_1(28, 'Installing backend dependencies...');
-                return [4 /*yield*/, exec('yarn backend:install')
-                    // let i = 0;
-                    // for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
-                    //     progress(30 + i++ * 2, `Running task ${cmd}...`)
-                    //     await exec(`yarn backend:build:${cmd}`)
-                    // }
-                ];
-            case 22:
+                return [4 /*yield*/, exec('yarn backend:install')];
+            case 29:
                 _j.sent();
-                // let i = 0;
-                // for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"]) {
-                //     progress(30 + i++ * 2, `Running task ${cmd}...`)
-                //     await exec(`yarn backend:build:${cmd}`)
-                // }
                 progress_1(32, 'Building backend...');
                 return [4 /*yield*/, exec("yarn backend:build")];
-            case 23:
+            case 30:
                 _j.sent();
                 progress_1(50, 'Installing frontend dependencies...');
                 return [4 /*yield*/, exec('yarn frontend:install')];
-            case 24:
+            case 31:
                 _j.sent();
                 progress_1(55, 'Building frontend package...');
                 return [4 /*yield*/, exec('yarn frontend:build')];
-            case 25:
+            case 32:
                 _j.sent();
                 progress_1(75, 'Creating catalogs...');
                 installDir = getInstallDir(config);
@@ -408,11 +412,11 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 }
                 progress_1(84, 'Moving backend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'bin') + "/* " + installDir)];
-            case 26:
+            case 33:
                 _j.sent();
                 progress_1(86, 'Moving frontend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-frontend', 'build') + "/* " + installDir + "/public")];
-            case 27:
+            case 34:
                 _j.sent();
                 progress_1(90, 'Installing server dependencies...');
                 progress_1(95, 'Patching package...');
@@ -421,13 +425,13 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress_1(98, 'Finishing...');
                 setTimeout(function () { return progress_1(100, ''); });
-                return [3 /*break*/, 29];
-            case 28:
+                return [3 /*break*/, 36];
+            case 35:
                 error_5 = _j.sent();
                 console.error(error_5);
                 event.sender.send('install_error', 'FATAL ERROR: ' + error_5.message);
-                return [3 /*break*/, 29];
-            case 29: return [2 /*return*/];
+                return [3 /*break*/, 36];
+            case 36: return [2 /*return*/];
         }
     });
 }); });
