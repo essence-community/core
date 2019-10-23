@@ -63,9 +63,9 @@ const LocationSetup = (props: StepProps) => {
                     <TextField
                         flex={1}
                         label="Password"
-                        value={props.config.dbUsename}
+                        value={props.config.dbPassword}
                         onChange={e => props.setConfig({
-                            dbUsename: e.target.value
+                            dbPassword: e.target.value
                         })}
                         mb="1rem"
                     />

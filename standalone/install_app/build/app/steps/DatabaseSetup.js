@@ -43,8 +43,8 @@ var LocationSetup = function (props) {
                 react_1.default.createElement(core_1.TextField, { flex: 1, mr: "1rem", label: "Username", value: props.config.dbUsename, onChange: function (e) { return props.setConfig({
                         dbUsename: e.target.value
                     }); }, mb: "1rem" }),
-                react_1.default.createElement(core_1.TextField, { flex: 1, label: "Password", value: props.config.dbUsename, onChange: function (e) { return props.setConfig({
-                        dbUsename: e.target.value
+                react_1.default.createElement(core_1.TextField, { flex: 1, label: "Password", value: props.config.dbPassword, onChange: function (e) { return props.setConfig({
+                        dbPassword: e.target.value
                     }); }, mb: "1rem" })),
             react_1.default.createElement(core_1.TextField, { flex: 1, label: "Database prefix", value: props.config.dbPrefix, onChange: function (e) { return props.setConfig({
                     dbPrefix: e.target.value
