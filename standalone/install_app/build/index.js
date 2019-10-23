@@ -335,7 +335,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 shellData = fs_1.default.readFileSync(path_1.default.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), {
                     encoding: 'utf-8'
                 });
-                return [4 /*yield*/, exec("cd " + dir + "\r\n" + shellData)];
+                return [4 /*yield*/, exec("cd " + dir + (process.platform === 'win32' ? '\r' : '') + "\n" + shellData)];
             case 19:
                 _l.sent();
                 _l.label = 20;

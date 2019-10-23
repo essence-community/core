@@ -224,7 +224,7 @@ ipcMain.on('install', async (event, arg) => {
             const shellData = fs.readFileSync(path.resolve(dir, process.platform === 'win32' ? 'update.bat' : 'update'), { 
                 encoding: 'utf-8' 
             })
-            await exec(`cd ${dir}\r\n${shellData}`)
+            await exec(`cd ${dir}${process.platform === 'win32' ? '\r' : ''}\n${shellData}`)
         }
 
         progress(28, 'Installing backend dependencies...')
