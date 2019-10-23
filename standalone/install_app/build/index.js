@@ -49,17 +49,10 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
-var __importStar = (this && this.__importStar) || function (mod) {
-    if (mod && mod.__esModule) return mod;
-    var result = {};
-    if (mod != null) for (var k in mod) if (Object.hasOwnProperty.call(mod, k)) result[k] = mod[k];
-    result["default"] = mod;
-    return result;
-};
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
+var fs_1 = __importDefault(require("fs"));
 var path_1 = __importDefault(require("path"));
-var fs_1 = __importStar(require("fs"));
 var pg_1 = __importDefault(require("pg"));
 var childProcess = require('child_process');
 var win;
@@ -87,11 +80,29 @@ electron_1.app.on("activate", function () {
     if (win === null)
         createWindow();
 });
-function progress(e, percent, message) {
-    e.sender.send('progress', JSON.stringify({
-        message: message,
-        percent: percent
-    }));
+function ProcessSender(e) {
+    return function (percent, message) {
+        e.sender.send('progress', JSON.stringify({
+            message: message,
+            percent: percent
+        }));
+    };
+}
+function checkJavaVersion() {
+    return new Promise(function (resolve, reject) {
+        var spawn = childProcess.spawn('java', ['-version']);
+        spawn.on('error', function (error) { return reject(error); });
+        spawn.stderr.on('data', function (data) {
+            data = data.toString().split('\n')[0];
+            var checkJavaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+            if (checkJavaVersion != false) {
+                return resolve(checkJavaVersion);
+            }
+            else {
+                reject(new Error('Java not installed'));
+            }
+        });
+    });
 }
 var getInstallDir = function (config) {
     var appPath = config.appLocation;
@@ -100,28 +111,102 @@ var getInstallDir = function (config) {
     }
     return appPath;
 };
-electron_1.ipcMain.on('check_install_path', function (event, arg) {
-    var config = JSON.parse(arg);
-    try {
-        var appPath = getInstallDir(config);
-        if (!fs_1.default.existsSync(appPath)) {
-            fs_1.default.mkdirSync(appPath);
+function CreateSQLUser(db, user, login, su) {
+    if (login === void 0) { login = false; }
+    if (su === void 0) { su = false; }
+    return __awaiter(this, void 0, void 0, function () {
+        var error_1;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 2, , 3]);
+                    return [4 /*yield*/, db.query("CREATE ROLE " + user + " WITH " + (login ? '' : 'NO') + "LOGIN " + (su ? '' : 'NO') + "SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;")];
+                case 1:
+                    _a.sent();
+                    return [3 /*break*/, 3];
+                case 2:
+                    error_1 = _a.sent();
+                    if (error_1.code != 42710) {
+                        throw error_1;
+                    }
+                    return [3 /*break*/, 3];
+                case 3: return [2 /*return*/];
+            }
+        });
+    });
+}
+function CreateSQLDatabase(db, name, user) {
+    return __awaiter(this, void 0, void 0, function () {
+        var error_2;
+        return __generator(this, function (_a) {
+            switch (_a.label) {
+                case 0:
+                    _a.trys.push([0, 3, , 4]);
+                    return [4 /*yield*/, db.query("DROP DATABASE IF EXISTS " + name + ";")];
+                case 1:
+                    _a.sent();
+                    return [4 /*yield*/, db.query("\n            CREATE DATABASE " + name + "\n                WITH \n                OWNER = " + user + "\n                ENCODING = 'UTF8'\n                LC_COLLATE = 'ru_RU.UTF-8'\n                LC_CTYPE = 'ru_RU.UTF-8'\n                TEMPLATE = template0\n                TABLESPACE = pg_default\n                CONNECTION LIMIT = -1;\n        ")];
+                case 2:
+                    _a.sent();
+                    return [3 /*break*/, 4];
+                case 3:
+                    error_2 = _a.sent();
+                    if (error_2.code != 42710) {
+                        throw error_2;
+                    }
+                    return [3 /*break*/, 4];
+                case 4: return [2 /*return*/];
+            }
+        });
+    });
+}
+function exec(command, options) {
+    if (options === void 0) { options = {}; }
+    return new Promise(function (resolve, reject) {
+        childProcess.exec(command, options, function (error, stdout, stderr) {
+            if (error) {
+                error.stderr = stderr;
+                return reject(error);
+            }
+            resolve({ stdout: stdout });
+        });
+    });
+}
+electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+    var config, appPath, dir, error_3;
+    return __generator(this, function (_a) {
+        switch (_a.label) {
+            case 0:
+                config = JSON.parse(arg);
+                _a.label = 1;
+            case 1:
+                _a.trys.push([1, 3, , 4]);
+                appPath = getInstallDir(config);
+                if (!fs_1.default.existsSync(appPath)) {
+                    fs_1.default.mkdirSync(appPath);
+                }
+                if (!fs_1.default.existsSync(appPath)) {
+                    throw new Error("Failed to create install directory at path " + appPath + "!");
+                }
+                dir = fs_1.default.readdirSync(appPath);
+                if (dir.length !== 0) {
+                    throw new Error('Install directory must be empty!');
+                }
+                return [4 /*yield*/, checkJavaVersion()];
+            case 2:
+                _a.sent();
+                event.sender.send('check');
+                return [3 /*break*/, 4];
+            case 3:
+                error_3 = _a.sent();
+                event.sender.send('check', error_3.message);
+                return [3 /*break*/, 4];
+            case 4: return [2 /*return*/];
         }
-        if (!fs_1.default.existsSync(appPath)) {
-            throw new Error("Failed to create install directory at path " + appPath + "!");
-        }
-        var dir = fs_1.default.readdirSync(appPath);
-        if (dir.length !== 0) {
-            throw new Error('Install directory must be empty!');
-        }
-        event.sender.send('check_install_path');
-    }
-    catch (error) {
-        event.sender.send('check_install_path', error.message);
-    }
-});
+    });
+}); });
 electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var config, db, error_1;
+    var config, db, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
             case 0:
@@ -145,83 +230,22 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
                 event.sender.send('check_database_connection');
                 return [3 /*break*/, 5];
             case 4:
-                error_1 = _a.sent();
-                event.sender.send('check_database_connection', "Failed to connect postgres (" + error_1.message + ")");
+                error_4 = _a.sent();
+                event.sender.send('check_database_connection', "Failed to connect postgres (" + error_4.message + ")");
                 return [3 /*break*/, 5];
             case 5: return [2 /*return*/];
         }
     });
 }); });
-function CreateSQLUser(db, user, login, su) {
-    if (login === void 0) { login = false; }
-    if (su === void 0) { su = false; }
-    return __awaiter(this, void 0, void 0, function () {
-        var error_2;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 2, , 3]);
-                    return [4 /*yield*/, db.query("CREATE ROLE " + user + " WITH " + (login ? '' : 'NO') + "LOGIN " + (su ? '' : 'NO') + "SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;")];
-                case 1:
-                    _a.sent();
-                    return [3 /*break*/, 3];
-                case 2:
-                    error_2 = _a.sent();
-                    if (!error_2.message.match("already exists")) {
-                        throw error_2;
-                    }
-                    return [3 /*break*/, 3];
-                case 3: return [2 /*return*/];
-            }
-        });
-    });
-}
-function CreateSQLDatabase(db, name, user) {
-    return __awaiter(this, void 0, void 0, function () {
-        var error_3;
-        return __generator(this, function (_a) {
-            switch (_a.label) {
-                case 0:
-                    _a.trys.push([0, 3, , 4]);
-                    return [4 /*yield*/, db.query("DROP DATABASE IF EXISTS " + name + ";")];
-                case 1:
-                    _a.sent();
-                    return [4 /*yield*/, db.query("\n            CREATE DATABASE " + name + "\n                WITH \n                OWNER = " + user + "\n                ENCODING = 'UTF8'\n                LC_COLLATE = 'ru_RU.UTF-8'\n                LC_CTYPE = 'ru_RU.UTF-8'\n                TEMPLATE = template0\n                TABLESPACE = pg_default\n                CONNECTION LIMIT = -1;\n        ")];
-                case 2:
-                    _a.sent();
-                    return [3 /*break*/, 4];
-                case 3:
-                    error_3 = _a.sent();
-                    if (!error_3.message.match("already exists")) {
-                        throw error_3;
-                    }
-                    return [3 /*break*/, 4];
-                case 4: return [2 /*return*/];
-            }
-        });
-    });
-}
-function exec(command, options) {
-    if (options === void 0) { options = {}; }
-    return new Promise(function (resolve, reject) {
-        childProcess.exec(command, options, function (error, stdout, stderr) {
-            if (error) {
-                error.stderr = stderr;
-                return reject(error);
-            }
-            resolve({ stdout: stdout });
-        });
-    });
-}
 electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var config, db, installDir, configFiles, configReplaces, _loop_1, _i, configFiles_1, fileName, packageJson, error_4;
-    return __generator(this, function (_a) {
-        switch (_a.label) {
+    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, i, _f, _g, cmd, installDir, _h, _j, dir, configFiles, configReplaces, _loop_1, _k, configFiles_1, fileName, packageJson, error_5;
+    return __generator(this, function (_l) {
+        switch (_l.label) {
             case 0:
                 config = JSON.parse(arg);
-                _a.label = 1;
+                _l.label = 1;
             case 1:
-                _a.trys.push([1, 34, , 35]);
+                _l.trys.push([1, 31, , 32]);
                 db = new pg_1.default.Client({
                     host: config.dbHost,
                     port: parseInt(config.dbPort),
@@ -229,130 +253,116 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                     password: config.dbPassword,
                     database: "postgres",
                 });
-                progress(event, 1, 'Connecting postgres...');
+                progress_1 = ProcessSender(event);
+                progress_1(1, 'Connecting postgres...');
                 return [4 /*yield*/, db.connect()];
             case 2:
-                _a.sent();
-                progress(event, 3, 'Creating roles...');
+                _l.sent();
+                progress_1(3, 'Creating roles...');
                 return [4 /*yield*/, CreateSQLUser(db, 's_su', true, true)];
             case 3:
-                _a.sent();
+                _l.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mc', true)];
             case 4:
-                _a.sent();
+                _l.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mp')];
             case 5:
-                _a.sent();
+                _l.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ac', true)];
             case 6:
-                _a.sent();
+                _l.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ap')];
             case 7:
-                _a.sent();
-                return [4 /*yield*/, db.query("ALTER USER s_su WITH PASSWORD 's_su';")];
+                _l.sent();
+                _i = 0, _a = ["s_su", "s_mc", "s_ac"];
+                _l.label = 8;
             case 8:
-                _a.sent();
-                return [4 /*yield*/, db.query("ALTER USER s_mc WITH PASSWORD 's_mc';")];
+                if (!(_i < _a.length)) return [3 /*break*/, 11];
+                user = _a[_i];
+                return [4 /*yield*/, db.query("ALTER USER " + user + " WITH PASSWORD '" + user + "';")];
             case 9:
-                _a.sent();
-                return [4 /*yield*/, db.query("ALTER USER s_ac WITH PASSWORD 's_ac';")];
+                _l.sent();
+                _l.label = 10;
             case 10:
-                _a.sent();
-                progress(event, 6, 'Settings search paths...');
-                return [4 /*yield*/, db.query("ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;")];
+                _i++;
+                return [3 /*break*/, 8];
             case 11:
-                _a.sent();
-                return [4 /*yield*/, db.query("ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;")];
+                progress_1(6, 'Settings search paths...');
+                return [4 /*yield*/, db.query("ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;")];
             case 12:
-                _a.sent();
-                progress(event, 9, 'Creating core database...');
-                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')];
+                _l.sent();
+                return [4 /*yield*/, db.query("ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;")];
             case 13:
-                _a.sent();
-                progress(event, 12, 'Creating meta database...');
-                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')
-                    // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
-                    // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
-                ];
+                _l.sent();
+                progress_1(9, 'Creating core database...');
+                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')];
             case 14:
-                _a.sent();
-                // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
-                // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
-                progress(event, 15, 'Fetching core-frontend...');
-                return [4 /*yield*/, exec('yarn frontend:clone')];
+                _l.sent();
+                progress_1(12, 'Creating meta database...');
+                return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')];
             case 15:
-                _a.sent();
-                progress(event, 18, 'Fetching core-backend...');
-                return [4 /*yield*/, exec('yarn backend:clone')];
+                _l.sent();
+                progress_1(13, 'Clearing source directories...');
+                for (_b = 0, _c = ["core-frontend", "core-backend"]; _b < _c.length; _b++) {
+                    dir = _c[_b];
+                    fs_1.default.rmdirSync(path_1.default.resolve(__dirname, '..', '..', dir), { recursive: true });
+                }
+                progress_1(15, 'Fetching core-frontend...');
+                return [4 /*yield*/, exec('yarn frontend:clone')];
             case 16:
-                _a.sent();
-                progress(event, 20, 'Migrating meta...');
-                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
+                _l.sent();
+                progress_1(18, 'Fetching core-backend...');
+                return [4 /*yield*/, exec('yarn backend:clone')];
             case 17:
-                _a.sent();
-                progress(event, 25, 'Migrating auth...');
-                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : '')))];
+                _l.sent();
+                _d = 0, _e = ["dbms", "dbms_auth"];
+                _l.label = 18;
             case 18:
-                _a.sent();
-                progress(event, 28, 'Installing backend dependencies...');
-                return [4 /*yield*/, exec('yarn backend:install')];
+                if (!(_d < _e.length)) return [3 /*break*/, 21];
+                dir = _e[_d];
+                progress_1(dir == "dbms" ? 20 : 25, "Migrating " + (dir == "dbms" ? 'meta' : 'auth') + "...");
+                return [4 /*yield*/, exec(path_1.default.resolve(__dirname, '..', '..', 'core-backend', dir, process.platform === 'win32' ? 'update.bat' : 'update'))];
             case 19:
-                _a.sent();
-                progress(event, 30, 'Building plugins...');
-                return [4 /*yield*/, exec('yarn backend:build:plugins')];
+                _l.sent();
+                _l.label = 20;
             case 20:
-                _a.sent();
-                progress(event, 32, 'Building contexts...');
-                return [4 /*yield*/, exec('yarn backend:build:contexts')];
+                _d++;
+                return [3 /*break*/, 18];
             case 21:
-                _a.sent();
-                progress(event, 34, 'Building events...');
-                return [4 /*yield*/, exec('yarn backend:build:events')];
+                progress_1(28, 'Installing backend dependencies...');
+                return [4 /*yield*/, exec('yarn backend:install')];
             case 22:
-                _a.sent();
-                progress(event, 36, 'Building schedulers...');
-                return [4 /*yield*/, exec('yarn backend:build:schedulers')];
+                _l.sent();
+                i = 0;
+                _f = 0, _g = ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "certs", "copy"];
+                _l.label = 23;
             case 23:
-                _a.sent();
-                progress(event, 38, 'Building providers...');
-                return [4 /*yield*/, exec('yarn backend:build:providers')];
+                if (!(_f < _g.length)) return [3 /*break*/, 26];
+                cmd = _g[_f];
+                progress_1(30 + i++ * 2, "Running task " + cmd + "...");
+                return [4 /*yield*/, exec("yarn backend:build:" + cmd)];
             case 24:
-                _a.sent();
-                progress(event, 40, 'Building server...');
-                return [4 /*yield*/, exec('yarn backend:build:server')];
+                _l.sent();
+                _l.label = 25;
             case 25:
-                _a.sent();
-                progress(event, 42, 'Building plugininf...');
-                return [4 /*yield*/, exec('yarn backend:build:plugininf')];
+                _f++;
+                return [3 /*break*/, 23];
             case 26:
-                _a.sent();
-                progress(event, 44, 'Building libs...');
-                return [4 /*yield*/, exec('yarn backend:build:libs')];
-            case 27:
-                _a.sent();
-                progress(event, 46, 'Copyring certs...');
-                return [4 /*yield*/, exec('yarn backend:build:cert')];
-            case 28:
-                _a.sent();
-                progress(event, 48, 'Copyring package...');
-                return [4 /*yield*/, exec('yarn backend:build:copy')];
-            case 29:
-                _a.sent();
-                progress(event, 50, 'Installing frontend dependencies...');
+                progress_1(50, 'Installing frontend dependencies...');
                 return [4 /*yield*/, exec('yarn frontend:install')];
-            case 30:
-                _a.sent();
-                progress(event, 55, 'Building frontend package...');
+            case 27:
+                _l.sent();
+                progress_1(55, 'Building frontend package...');
                 return [4 /*yield*/, exec('yarn frontend:build')];
-            case 31:
-                _a.sent();
-                progress(event, 75, 'Creating catalogs...');
+            case 28:
+                _l.sent();
+                progress_1(75, 'Creating catalogs...');
                 installDir = getInstallDir(config);
-                fs_1.mkdirSync(path_1.default.resolve(installDir, 'config'));
-                fs_1.mkdirSync(path_1.default.resolve(installDir, 'logs'));
-                fs_1.mkdirSync(path_1.default.resolve(installDir, 'tmp'));
-                fs_1.mkdirSync(path_1.default.resolve(installDir, 'public'));
-                progress(event, 80, 'Creating configs...');
+                for (_h = 0, _j = ["config", "logs", "tmp", "public"]; _h < _j.length; _h++) {
+                    dir = _j[_h];
+                    fs_1.default.mkdirSync(path_1.default.resolve(installDir, dir));
+                }
+                progress_1(80, 'Creating configs...');
                 configFiles = [
                     'logger.json',
                     't_context.toml',
@@ -378,31 +388,31 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                     });
                     fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'config', fileName), fileContent, { encoding: "utf-8" });
                 };
-                for (_i = 0, configFiles_1 = configFiles; _i < configFiles_1.length; _i++) {
-                    fileName = configFiles_1[_i];
+                for (_k = 0, configFiles_1 = configFiles; _k < configFiles_1.length; _k++) {
+                    fileName = configFiles_1[_k];
                     _loop_1(fileName);
                 }
-                progress(event, 84, 'Moving backend...');
+                progress_1(84, 'Moving backend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'bin') + "/* " + installDir)];
-            case 32:
-                _a.sent();
-                progress(event, 86, 'Moving frontend...');
+            case 29:
+                _l.sent();
+                progress_1(86, 'Moving frontend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-frontend', 'build') + "/* " + installDir + "/public")];
-            case 33:
-                _a.sent();
-                progress(event, 90, 'Installing server dependencies...');
-                progress(event, 95, 'Patching package...');
+            case 30:
+                _l.sent();
+                progress_1(90, 'Installing server dependencies...');
+                progress_1(95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
                 packageJson.nodemonConfig.env = __assign(__assign({}, packageJson.nodemonConfig.env), { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
-                progress(event, 98, 'Finishing...');
-                setTimeout(function () { return progress(event, 100, ''); });
-                return [3 /*break*/, 35];
-            case 34:
-                error_4 = _a.sent();
-                event.sender.send('install_error', 'FATAL ERROR: ' + error_4.message);
-                return [3 /*break*/, 35];
-            case 35: return [2 /*return*/];
+                progress_1(98, 'Finishing...');
+                setTimeout(function () { return progress_1(100, ''); });
+                return [3 /*break*/, 32];
+            case 31:
+                error_5 = _l.sent();
+                event.sender.send('install_error', 'FATAL ERROR: ' + error_5.message);
+                return [3 /*break*/, 32];
+            case 32: return [2 /*return*/];
         }
     });
 }); });

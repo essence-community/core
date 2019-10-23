@@ -8,7 +8,7 @@ const GeneralSetup = (props: StepProps) => {
         props.setTitle('General setup')
         props.setSubtitle('Setup general properties')
 
-        ipcRenderer.on('check_install_path', (event, arg) => {
+        ipcRenderer.on('check', (event, arg) => {
             if (!arg) {
                 props.onNext()
                 return
@@ -77,7 +77,7 @@ const GeneralSetup = (props: StepProps) => {
                 <Flexbox justifyContent="flex-end">
                     <Button
                         onClick={() => {
-                            ipcRenderer.send('check_install_path', JSON.stringify(props.config))
+                            ipcRenderer.send('check', JSON.stringify(props.config))
                         }}
                         children={(
                             <Flexbox>

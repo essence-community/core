@@ -14,7 +14,7 @@ var GeneralSetup = function (props) {
     react_1.useEffect(function () {
         props.setTitle('General setup');
         props.setSubtitle('Setup general properties');
-        electron_1.ipcRenderer.on('check_install_path', function (event, arg) {
+        electron_1.ipcRenderer.on('check', function (event, arg) {
             if (!arg) {
                 props.onNext();
                 return;
@@ -52,7 +52,7 @@ var GeneralSetup = function (props) {
         react_1.default.createElement(core_1.Panel, { align: "bottom" },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
                 react_1.default.createElement(core_1.Button, { onClick: function () {
-                        electron_1.ipcRenderer.send('check_install_path', JSON.stringify(props.config));
+                        electron_1.ipcRenderer.send('check', JSON.stringify(props.config));
                     }, children: (react_1.default.createElement(core_1.Flexbox, null,
                         "Next",
                         react_1.default.createElement(core_1.Icon, { size: "1rem", pl: "0.5rem", type: function (t) { return t.outline.arrowIosForward; } }))) })))));

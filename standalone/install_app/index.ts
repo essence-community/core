@@ -1,6 +1,6 @@
 import { app, BrowserWindow, ipcMain } from "electron"
+import fs from "fs"
 import path from "path"
-import fs, { mkdirSync, unlink, unlinkSync } from "fs"
 import pg from "pg"
 import { InstallConfig } from './app'
 const childProcess = require('child_process')
@@ -33,12 +33,31 @@ app.on("activate", () => {
 })
 
 
-function progress(e: Electron.IpcMainEvent, percent: number, message: string) {
-    e.sender.send('progress', JSON.stringify({
-        message,
-        percent
-    }))
+function ProcessSender(e: Electron.IpcMainEvent) {
+    return (percent: number, message: string) => {
+        e.sender.send('progress', JSON.stringify({
+            message,
+            percent
+        }))
+    }
 }
+
+function checkJavaVersion() {
+    return new Promise((resolve, reject) => {
+        const spawn = childProcess.spawn('java', ['-version']);
+        spawn.on('error', (error: Error) => reject(error))
+        spawn.stderr.on('data', (data: string) => {
+            data = data.toString().split('\n')[0];
+            var checkJavaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+            if (checkJavaVersion != false) {
+                return resolve(checkJavaVersion)
+            } else {
+                reject(new Error('Java not installed'))
+            }
+        });
+    })
+}
+
 
 const getInstallDir = (config: InstallConfig) => {
     let appPath = config.appLocation!
@@ -48,9 +67,53 @@ const getInstallDir = (config: InstallConfig) => {
     return appPath;
 }
 
-ipcMain.on('check_install_path', (event, arg) => {
-    const config: InstallConfig = JSON.parse(arg)
+async function CreateSQLUser(db: pg.Client, user: string, login: boolean = false, su: boolean = false) {
+    try {
+        await db.query(`CREATE ROLE ${user} WITH ${login ? '' : 'NO'}LOGIN ${su ? '' : 'NO'}SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;`)
+    } catch (error) {
+        if (error.code != 42710) {
+            throw error
+        }
+    }
+}
 
+async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
+    try {
+        await db.query(`DROP DATABASE IF EXISTS ${name};`)
+        await db.query(`
+            CREATE DATABASE ${name}
+                WITH 
+                OWNER = ${user}
+                ENCODING = 'UTF8'
+                LC_COLLATE = 'ru_RU.UTF-8'
+                LC_CTYPE = 'ru_RU.UTF-8'
+                TEMPLATE = template0
+                TABLESPACE = pg_default
+                CONNECTION LIMIT = -1;
+        `)
+    } catch (error) {
+        if (error.code != 42710) {
+            throw error
+        }
+    }
+}
+
+function exec(command: string, options = {}) {
+    return new Promise((resolve, reject) => {
+        childProcess.exec(command, options, (error, stdout, stderr) => {
+            if (error) {
+                error.stderr = stderr;
+                return reject(error);
+            }
+            resolve({ stdout: stdout });
+        });
+    });
+}
+
+
+ipcMain.on('check', async (event, arg) => {
+    const config: InstallConfig = JSON.parse(arg)
+    
     try {
         let appPath = getInstallDir(config);
 
@@ -68,9 +131,11 @@ ipcMain.on('check_install_path', (event, arg) => {
             throw new Error('Install directory must be empty!')
         }
 
-        event.sender.send('check_install_path')
+        await checkJavaVersion()
+
+        event.sender.send('check')
     } catch (error) {
-        event.sender.send('check_install_path', error.message)
+        event.sender.send('check', error.message)
     }
 })
 
@@ -94,50 +159,6 @@ ipcMain.on('check_database_connection', async (event, arg) => {
     }
 })
 
-async function CreateSQLUser(db: pg.Client, user: string, login: boolean = false, su: boolean = false) {
-    try {
-        await db.query(`CREATE ROLE ${user} WITH ${login ? '' : 'NO'}LOGIN ${su ? '' : 'NO'}SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;`)
-    } catch (error) {
-        if (!error.message.match("already exists")) {
-            throw error
-        }
-    }
-}
-
-async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
-    try {
-        await db.query(`DROP DATABASE IF EXISTS ${name};`)
-        await db.query(`
-            CREATE DATABASE ${name}
-                WITH 
-                OWNER = ${user}
-                ENCODING = 'UTF8'
-                LC_COLLATE = 'ru_RU.UTF-8'
-                LC_CTYPE = 'ru_RU.UTF-8'
-                TEMPLATE = template0
-                TABLESPACE = pg_default
-                CONNECTION LIMIT = -1;
-        `)
-    } catch (error) {
-        if (!error.message.match("already exists")) {
-            throw error
-        }
-    }
-}
-
-
-function exec(command, options = {}) {
-    return new Promise((resolve, reject) => {
-        childProcess.exec(command, options, (error, stdout, stderr) => {
-            if (error) {
-                error.stderr = stderr;
-                return reject(error);
-            }
-            resolve({ stdout: stdout });
-        });
-    });
-}
-
 ipcMain.on('install', async (event, arg) => {
 
     const config: InstallConfig = JSON.parse(arg)
@@ -150,9 +171,12 @@ ipcMain.on('install', async (event, arg) => {
             database: "postgres",
         })
 
-        progress(event, 1, 'Connecting postgres...')
+        const progress = ProcessSender(event);
+
+        progress(1, 'Connecting postgres...')
         await db.connect()
-        progress(event, 3, 'Creating roles...')
+
+        progress(3, 'Creating roles...')
 
         await CreateSQLUser(db, 's_su', true, true)
         await CreateSQLUser(db, 's_mc', true)
@@ -160,89 +184,66 @@ ipcMain.on('install', async (event, arg) => {
         await CreateSQLUser(db, 's_ac', true)
         await CreateSQLUser(db, 's_ap')
 
-        await db.query(`ALTER USER s_su WITH PASSWORD 's_su';`)
-        await db.query(`ALTER USER s_mc WITH PASSWORD 's_mc';`)
-        await db.query(`ALTER USER s_ac WITH PASSWORD 's_ac';`)
+        for (const user of ["s_su", "s_mc", "s_ac"]) {
+            await db.query(`ALTER USER ${user} WITH PASSWORD '${user}';`)
+        }
         
-        progress(event, 6, 'Settings search paths...')
+        progress(6, 'Settings search paths...')
 
         await db.query(`ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;`)
         await db.query(`ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;`)       
                 
-        progress(event, 9, 'Creating core database...')
-
+        progress(9, 'Creating core database...')
         await CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')
 
-        progress(event, 12, 'Creating meta database...')
-
+        progress(12, 'Creating meta database...')
         await CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')
         
-        // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-frontend'))
-        // await exec('rm -R ' + path.resolve(__dirname, '..', '..', 'core-backend'))
+        progress(13, 'Clearing source directories...')
+        for (let dir of ["core-frontend", "core-backend"]) {
+            dir = path.resolve(__dirname, '..', '..', dir)
+            if (fs.existsSync(dir)) {
+                fs.rmdirSync(dir, { recursive: true })
+            }
+        }
 
-        progress(event, 15, 'Fetching core-frontend...')
-
+        progress(15, 'Fetching core-frontend...')
         await exec('yarn frontend:clone')
 
-        progress(event, 18, 'Fetching core-backend...')
-
+        progress(18, 'Fetching core-backend...')
         await exec('yarn backend:clone')
 
-        progress(event, 20, 'Migrating meta...')
+        for (const dir of ["dbms", "dbms_auth"]) {
+            progress(dir == "dbms" ? 20 : 25, `Migrating ${dir == "dbms" ? 'meta' : 'auth'}...`)
+            await exec(
+                path.resolve(__dirname, '..', '..', 'core-backend', dir, process.platform === 'win32' ? 'update.bat' : 'update')
+            )
+        }
 
-        await exec(
-            path.resolve(__dirname, '..', '..', 'core-backend', 'dbms', 'update' + (process.platform === 'win32' ? '.bat' : ''))
-        )
-
-        progress(event, 25, 'Migrating auth...')
-
-        await exec(
-            path.resolve(__dirname, '..', '..', 'core-backend', 'dbms_auth', 'update' + (process.platform === 'win32' ? '.bat' : ''))
-        )
-
-        progress(event, 28, 'Installing backend dependencies...')
-
+        progress(28, 'Installing backend dependencies...')
         await exec('yarn backend:install')
 
-        progress(event, 30, 'Building plugins...')
-        await exec('yarn backend:build:plugins')
-        progress(event, 32, 'Building contexts...')
-        await exec('yarn backend:build:contexts')
-        progress(event, 34, 'Building events...')
-        await exec('yarn backend:build:events')
-        progress(event, 36, 'Building schedulers...')
-        await exec('yarn backend:build:schedulers')
-        progress(event, 38, 'Building providers...')
-        await exec('yarn backend:build:providers')
-        progress(event, 40, 'Building server...')
-        await exec('yarn backend:build:server')
-        progress(event, 42, 'Building plugininf...')
-        await exec('yarn backend:build:plugininf')
-        progress(event, 44, 'Building libs...')
-        await exec('yarn backend:build:libs')
-        progress(event, 46, 'Copyring certs...')
-        await exec('yarn backend:build:cert')
-        progress(event, 48, 'Copyring package...')
-        await exec('yarn backend:build:copy')
+        let i = 0;
+        for (const cmd of ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "certs", "copy"]) {
+            progress(30 + i++ * 2, `Running task ${cmd}...`)
+            await exec(`yarn backend:build:${cmd}`)
+        }
 
-        progress(event, 50, 'Installing frontend dependencies...')
-
+        progress(50, 'Installing frontend dependencies...')
         await exec('yarn frontend:install')
 
-        progress(event, 55, 'Building frontend package...')
-
+        progress(55, 'Building frontend package...')
         await exec('yarn frontend:build')
 
-        progress(event, 75, 'Creating catalogs...')
+        progress(75, 'Creating catalogs...')
 
         const installDir = getInstallDir(config)
 
-        mkdirSync(path.resolve(installDir, 'config'))
-        mkdirSync(path.resolve(installDir, 'logs'))
-        mkdirSync(path.resolve(installDir, 'tmp'))
-        mkdirSync(path.resolve(installDir, 'public'))
+        for (const dir of ["config", "logs", "tmp", "public"]) {
+            fs.mkdirSync(path.resolve(installDir, dir))
+        }
 
-        progress(event, 80, 'Creating configs...')
+        progress(80, 'Creating configs...')
         
         const configFiles = [
             'logger.json', 
@@ -272,17 +273,14 @@ ipcMain.on('install', async (event, arg) => {
             fs.writeFileSync(path.resolve(installDir, 'config', fileName), fileContent, { encoding: "utf-8"})
         }
 
-        progress(event, 84, 'Moving backend...')
-
+        progress(84, 'Moving backend...')
         await exec(`cp -R ${path.resolve(__dirname, '..', '..', 'core-backend', 'bin')}/* ${installDir}`)
 
-        progress(event, 86, 'Moving frontend...')
-
+        progress(86, 'Moving frontend...')
         await exec(`cp -R ${path.resolve(__dirname, '..', '..', 'core-frontend', 'build')}/* ${installDir}/public`)
 
-        progress(event, 90, 'Installing server dependencies...')
-
-        progress(event, 95, 'Patching package...')
+        progress(90, 'Installing server dependencies...')
+        progress(95, 'Patching package...')
         
         const packageJson: any = JSON.parse(
             fs.readFileSync(path.resolve(installDir, 'package.json'), { encoding: 'utf-8' })
@@ -295,11 +293,12 @@ ipcMain.on('install', async (event, arg) => {
             GATE_UPLOAD_DIR: `${installDir}/tmp`,
             NEDB_TEMP_DB: `${installDir}/tmp/db`,    
         }
+
         fs.writeFileSync(path.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' })
 
-        progress(event, 98, 'Finishing...')
+        progress(98, 'Finishing...')
 
-        setTimeout(() => progress(event, 100, ''))
+        setTimeout(() => progress(100, ''))
 
     } catch (error) {
         event.sender.send('install_error', 'FATAL ERROR: ' + error.message)
