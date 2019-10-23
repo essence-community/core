@@ -2,6 +2,7 @@ import { app, BrowserWindow, ipcMain } from "electron"
 import fs from "fs"
 import path from "path"
 import pg from "pg"
+import rimraf from 'rimraf'
 import { InstallConfig } from './app'
 const childProcess = require('child_process')
 
@@ -207,7 +208,7 @@ ipcMain.on('install', async (event, arg) => {
         for (let dir of ["core-frontend", "core-backend"]) {
             dir = path.resolve(__dirname, '..', '..', dir)
             if (fs.existsSync(dir)) {
-                fs.rmdirSync(dir, { recursive: true })
+                rimraf.sync(dir)
             }
         }
 
