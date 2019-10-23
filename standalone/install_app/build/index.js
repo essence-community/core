@@ -348,7 +348,7 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
             case 22:
                 _l.sent();
                 i = 0;
-                _f = 0, _g = ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "certs", "copy"];
+                _f = 0, _g = ["plugins", "contexts", "events", "schedulers", "providers", "server", "plugininf", "libs", "cert", "copy"];
                 _l.label = 23;
             case 23:
                 if (!(_f < _g.length)) return [3 /*break*/, 26];

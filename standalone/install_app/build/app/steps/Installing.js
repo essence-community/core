@@ -34,7 +34,7 @@ var Installing = function (props) {
         react_1.default.createElement(core_1.Block, { p: "1rem", pt: "5rem" },
             react_1.default.createElement(core_1.Flexbox, { column: true },
                 react_1.default.createElement(core_1.Block, { flex: 1 },
-                    react_1.default.createElement(core_1.Meter, { size: "xlarge", color: function (c) { return error.length ? c.accent.red.hex() : c.primary.hex(); }, decoration: "outline", animated: true, animation: error.length === 0, percent: progress })),
+                    react_1.default.createElement(core_1.Meter, { shape: "square", size: "xlarge", color: function (c) { return error.length ? c.accent.red.hex() : c.primary.hex(); }, decoration: "outline", animated: true, animation: error.length === 0, percent: progress })),
                 react_1.default.createElement(core_1.C1, { color: function (c) { return c.light.hex(); } }, message),
                 error && (react_1.default.createElement(core_1.Block, null,
                     react_1.default.createElement(core_1.Divider, null),

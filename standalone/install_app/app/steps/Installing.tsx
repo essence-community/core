@@ -34,6 +34,7 @@ const Installing = (props: StepProps) => {
                 <Flexbox column >
                     <Block flex={1}>
                         <Meter 
+                            shape="square"
                             size="xlarge"
                             color={c => error.length ? c.accent.red.hex() : c.primary.hex()}
                             decoration="outline"
