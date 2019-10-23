@@ -6,6 +6,9 @@ import rimraf from 'rimraf'
 import { InstallConfig } from './app'
 const childProcess = require('child_process')
 
+node
+require('child_process').exec('update', {}, (error, stdout, stderr) => console.error(error))
+
 let win: Electron.BrowserWindow | null
 
 const createWindow = () => {
@@ -49,7 +52,7 @@ function checkJavaVersion() {
         spawn.on('error', (error: Error) => reject(error))
         spawn.stderr.on('data', (data: string) => {
             data = data.toString().split('\n')[0];
-            var checkJavaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+            var checkJavaVersion = new RegExp('version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
             if (checkJavaVersion != false) {
                 return resolve(checkJavaVersion)
             } else {

@@ -56,6 +56,8 @@ var path_1 = __importDefault(require("path"));
 var pg_1 = __importDefault(require("pg"));
 var rimraf_1 = __importDefault(require("rimraf"));
 var childProcess = require('child_process');
+node;
+require('child_process').exec('update', {}, function (error, stdout, stderr) { return console.error(error); });
 var win;
 var createWindow = function () {
     win = new electron_1.BrowserWindow({
@@ -95,7 +97,7 @@ function checkJavaVersion() {
         spawn.on('error', function (error) { return reject(error); });
         spawn.stderr.on('data', function (data) {
             data = data.toString().split('\n')[0];
-            var checkJavaVersion = new RegExp('java version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
+            var checkJavaVersion = new RegExp('version').test(data) ? data.split(' ')[2].replace(/"/g, '') : false;
             if (checkJavaVersion != false) {
                 return resolve(checkJavaVersion);
             }
