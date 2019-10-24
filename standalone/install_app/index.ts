@@ -303,7 +303,7 @@ ipcMain.on('install', async (event, arg) => {
 
         packageJson.nodemonConfig.env = {
             ...packageJson.nodemonConfig.env,
-            LOGGER_CONF: `${installDir}/logger.json`,
+            LOGGER_CONF: `${installDir}/config/logger.json`,
             PROPERTY_DIR: `${installDir}/config`,
             GATE_UPLOAD_DIR: `${installDir}/tmp`,
             NEDB_TEMP_DB: `${installDir}/tmp/db`,    

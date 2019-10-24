@@ -19,9 +19,10 @@ cl_default = 0
 ck_id = "extractRowmeta"
 cn_order = 2
 
-  [data.cct_params]
-  columns = "json,result"
-  extractSingleColumn = false
+[data.cct_params]
+columns = "json,result"
+extractSingleColumn = false
+
 [[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
