@@ -11,11 +11,10 @@ var __assign = (this && this.__assign) || function () {
     return __assign.apply(this, arguments);
 };
 var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
         function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
         function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        function step(result) { result.done ? resolve(result.value) : new P(function (resolve) { resolve(result.value); }).then(fulfilled, rejected); }
         step((generator = generator.apply(thisArg, _arguments || [])).next());
     });
 };
@@ -49,6 +48,7 @@ var __generator = (this && this.__generator) || function (thisArg, body) {
 var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
+var _this = this;
 Object.defineProperty(exports, "__esModule", { value: true });
 var electron_1 = require("electron");
 var fs_1 = __importDefault(require("fs"));
@@ -179,7 +179,7 @@ function exec(command, options) {
         });
     });
 }
-electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
     var config, appPath, dir, error_3;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -212,7 +212,7 @@ electron_1.ipcMain.on('check', function (event, arg) { return __awaiter(void 0, 
         }
     });
 }); });
-electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
+electron_1.ipcMain.on('check_database_connection', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
     var config, db, error_4;
     return __generator(this, function (_a) {
         switch (_a.label) {
@@ -244,15 +244,16 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
         }
     });
 }); });
-electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var config, db, progress_1, _i, _a, user, _b, _c, dir, _d, _e, dir, installDir, _f, _g, dir, configFiles, configReplaces, _loop_1, _h, configFiles_1, fileName, packageJson, error_5;
-    return __generator(this, function (_j) {
-        switch (_j.label) {
+electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(_this, void 0, void 0, function () {
+    var isWin32, config, db, progress_1, _i, _a, user, _b, _c, dir, liquibaseParams, backendPath, dbmsPath, dbmsAuthPath, liquibase, installDir, _d, _e, dir, configFiles, configReplaces, _loop_1, _f, configFiles_1, fileName, packageJson, error_5;
+    return __generator(this, function (_g) {
+        switch (_g.label) {
             case 0:
+                isWin32 = process.platform === 'win32';
                 config = JSON.parse(arg);
-                _j.label = 1;
+                _g.label = 1;
             case 1:
-                _j.trys.push([1, 35, , 36]);
+                _g.trys.push([1, 32, , 33]);
                 db = new pg_1.default.Client({
                     host: config.dbHost,
                     port: parseInt(config.dbPort),
@@ -264,32 +265,32 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(1, 'Connecting postgres...');
                 return [4 /*yield*/, db.connect()];
             case 2:
-                _j.sent();
+                _g.sent();
                 progress_1(3, 'Creating roles...');
                 return [4 /*yield*/, CreateSQLUser(db, 's_su', true, true)];
             case 3:
-                _j.sent();
+                _g.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mc', true)];
             case 4:
-                _j.sent();
+                _g.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_mp')];
             case 5:
-                _j.sent();
+                _g.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ac', true)];
             case 6:
-                _j.sent();
+                _g.sent();
                 return [4 /*yield*/, CreateSQLUser(db, 's_ap')];
             case 7:
-                _j.sent();
+                _g.sent();
                 _i = 0, _a = ["s_su", "s_mc", "s_ac"];
-                _j.label = 8;
+                _g.label = 8;
             case 8:
                 if (!(_i < _a.length)) return [3 /*break*/, 11];
                 user = _a[_i];
                 return [4 /*yield*/, db.query("ALTER USER " + user + " WITH PASSWORD '" + user + "';")];
             case 9:
-                _j.sent();
-                _j.label = 10;
+                _g.sent();
+                _g.label = 10;
             case 10:
                 _i++;
                 return [3 /*break*/, 8];
@@ -297,33 +298,33 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(6, 'Settings search paths...');
                 return [4 /*yield*/, db.query("ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;")];
             case 12:
-                _j.sent();
+                _g.sent();
                 return [4 /*yield*/, db.query("ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;")];
             case 13:
-                _j.sent();
+                _g.sent();
                 progress_1(9, 'Creating core database...');
                 return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'meta', 's_su')];
             case 14:
-                _j.sent();
+                _g.sent();
                 progress_1(12, 'Creating meta database...');
                 return [4 /*yield*/, CreateSQLDatabase(db, config.dbPrefix + 'auth', 's_su')];
             case 15:
-                _j.sent();
+                _g.sent();
                 progress_1(13, 'Clearing source directories...');
                 _b = 0, _c = ["core-frontend", "core-backend"];
-                _j.label = 16;
+                _g.label = 16;
             case 16:
                 if (!(_b < _c.length)) return [3 /*break*/, 20];
                 dir = _c[_b];
                 dir = path_1.default.resolve(__dirname, '..', '..', dir);
                 if (!fs_1.default.existsSync(dir)) return [3 /*break*/, 19];
-                if (!(process.platform === 'win32')) return [3 /*break*/, 17];
+                if (!isWin32) return [3 /*break*/, 17];
                 rimraf_1.default.sync(dir);
                 return [3 /*break*/, 19];
             case 17: return [4 /*yield*/, exec("rm -Rf " + dir)];
             case 18:
-                _j.sent();
-                _j.label = 19;
+                _g.sent();
+                _g.label = 19;
             case 19:
                 _b++;
                 return [3 /*break*/, 16];
@@ -331,53 +332,48 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                 progress_1(15, 'Fetching core-frontend...');
                 return [4 /*yield*/, exec('yarn frontend:clone')];
             case 21:
-                _j.sent();
+                _g.sent();
                 progress_1(18, 'Fetching core-backend...');
                 return [4 /*yield*/, exec('yarn backend:clone')];
             case 22:
-                _j.sent();
-                _d = 0, _e = ["dbms", "dbms_auth"];
-                _j.label = 23;
+                _g.sent();
+                liquibaseParams = '--username=s_su --password=s_su --driver=org.postgresql.Driver update';
+                backendPath = path_1.default.resolve(__dirname, '..', '..', 'core-backend');
+                dbmsPath = path_1.default.resolve(backendPath, 'dbms');
+                dbmsAuthPath = path_1.default.resolve(backendPath, 'dbms_auth');
+                liquibase = path_1.default.resolve(dbmsPath, 'liquibase', 'liquibase');
+                progress_1(20, "Migrating core...");
+                return [4 /*yield*/, exec("cd " + dbmsPath + " && " + (isWin32 ? 'call ' : '') + liquibase + (isWin32 ? '.bat' : '') + " --changeLogFile=" + path_1.default.resolve(dbmsPath, 'db.changelog.xml') + " --url=jdbc:postgresql://" + config.dbHost + ":" + config.dbPort + "/" + config.dbPrefix + "meta " + liquibaseParams)];
             case 23:
-                if (!(_d < _e.length)) return [3 /*break*/, 28];
-                dir = _e[_d];
-                progress_1(dir == "dbms" ? 20 : 25, "Migrating " + (dir == "dbms" ? 'meta' : 'auth') + "...");
-                dir = path_1.default.resolve(__dirname, '..', '..', 'core-backend', dir);
-                if (!(process.platform === 'win32')) return [3 /*break*/, 25];
-                return [4 /*yield*/, exec("cd " + dir + "\r\n" + fs_1.default.readFileSync(path_1.default.resolve(dir, 'update.bat'), {
-                        encoding: 'utf-8'
-                    }))];
+                _g.sent();
+                progress_1(22, "Migrating meta...");
+                return [4 /*yield*/, exec("cd " + dbmsAuthPath + " && " + (isWin32 ? 'call ' : '') + liquibase + (isWin32 ? '.bat' : '') + " --changeLogFile=" + path_1.default.resolve(dbmsAuthPath, 'db.changelog.meta.xml') + " --url=jdbc:postgresql://" + config.dbHost + ":" + config.dbPort + "/" + config.dbPrefix + "meta " + liquibaseParams)];
             case 24:
-                _j.sent();
-                return [3 /*break*/, 27];
-            case 25: return [4 /*yield*/, exec(path_1.default.resolve(dir, 'update'))];
-            case 26:
-                _j.sent();
-                _j.label = 27;
-            case 27:
-                _d++;
-                return [3 /*break*/, 23];
-            case 28:
+                _g.sent();
+                progress_1(25, "Migrating auth...");
+                return [4 /*yield*/, exec("cd " + dbmsAuthPath + " && " + (isWin32 ? 'call ' : '') + liquibase + (isWin32 ? '.bat' : '') + " --changeLogFile=" + path_1.default.resolve(dbmsAuthPath, 'db.changelog.auth.xml') + " --url=jdbc:postgresql://" + config.dbHost + ":" + config.dbPort + "/" + config.dbPrefix + "auth " + liquibaseParams)];
+            case 25:
+                _g.sent();
                 progress_1(28, 'Installing backend dependencies...');
                 return [4 /*yield*/, exec('yarn backend:install')];
-            case 29:
-                _j.sent();
+            case 26:
+                _g.sent();
                 progress_1(32, 'Building backend...');
                 return [4 /*yield*/, exec("yarn backend:build")];
-            case 30:
-                _j.sent();
+            case 27:
+                _g.sent();
                 progress_1(50, 'Installing frontend dependencies...');
                 return [4 /*yield*/, exec('yarn frontend:install')];
-            case 31:
-                _j.sent();
+            case 28:
+                _g.sent();
                 progress_1(55, 'Building frontend package...');
                 return [4 /*yield*/, exec('yarn frontend:build')];
-            case 32:
-                _j.sent();
+            case 29:
+                _g.sent();
                 progress_1(75, 'Creating catalogs...');
                 installDir = getInstallDir(config);
-                for (_f = 0, _g = ["config", "logs", "tmp", "public"]; _f < _g.length; _f++) {
-                    dir = _g[_f];
+                for (_d = 0, _e = ["config", "logs", "tmp", "public"]; _d < _e.length; _d++) {
+                    dir = _e[_d];
                     fs_1.default.mkdirSync(path_1.default.resolve(installDir, dir));
                 }
                 progress_1(80, 'Creating configs...');
@@ -406,32 +402,32 @@ electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0
                     });
                     fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'config', fileName), fileContent, { encoding: "utf-8" });
                 };
-                for (_h = 0, configFiles_1 = configFiles; _h < configFiles_1.length; _h++) {
-                    fileName = configFiles_1[_h];
+                for (_f = 0, configFiles_1 = configFiles; _f < configFiles_1.length; _f++) {
+                    fileName = configFiles_1[_f];
                     _loop_1(fileName);
                 }
                 progress_1(84, 'Moving backend...');
-                return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-backend', 'bin') + "/* " + installDir)];
-            case 33:
-                _j.sent();
+                return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(backendPath, 'bin') + "/* " + installDir)];
+            case 30:
+                _g.sent();
                 progress_1(86, 'Moving frontend...');
                 return [4 /*yield*/, exec("cp -R " + path_1.default.resolve(__dirname, '..', '..', 'core-frontend', 'build') + "/* " + installDir + "/public")];
-            case 34:
-                _j.sent();
+            case 31:
+                _g.sent();
                 progress_1(90, 'Installing server dependencies...');
                 progress_1(95, 'Patching package...');
                 packageJson = JSON.parse(fs_1.default.readFileSync(path_1.default.resolve(installDir, 'package.json'), { encoding: 'utf-8' }));
-                packageJson.nodemonConfig.env = __assign(__assign({}, packageJson.nodemonConfig.env), { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
+                packageJson.nodemonConfig.env = __assign({}, packageJson.nodemonConfig.env, { LOGGER_CONF: installDir + "/logger.json", PROPERTY_DIR: installDir + "/config", GATE_UPLOAD_DIR: installDir + "/tmp", NEDB_TEMP_DB: installDir + "/tmp/db" });
                 fs_1.default.writeFileSync(path_1.default.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' });
                 progress_1(98, 'Finishing...');
                 setTimeout(function () { return progress_1(100, ''); });
-                return [3 /*break*/, 36];
-            case 35:
-                error_5 = _j.sent();
+                return [3 /*break*/, 33];
+            case 32:
+                error_5 = _g.sent();
                 console.error(error_5);
                 event.sender.send('install_error', 'FATAL ERROR: ' + error_5.message);
-                return [3 /*break*/, 36];
-            case 36: return [2 /*return*/];
+                return [3 /*break*/, 33];
+            case 33: return [2 /*return*/];
         }
     });
 }); });

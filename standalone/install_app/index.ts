@@ -45,7 +45,7 @@ function ProcessSender(e: Electron.IpcMainEvent) {
 
 function checkJavaVersion() {
     return new Promise((resolve, reject) => {
-        const spawn = childProcess.spawn('java', ['-version']);
+        const spawn = childProcess.spawn('java', ['-version'])
         spawn.on('error', (error: Error) => reject(error))
         spawn.stderr.on('data', (data: string) => {
             data = data.toString().split('\n')[0];
@@ -55,7 +55,7 @@ function checkJavaVersion() {
             } else {
                 reject(new Error('Java not installed'))
             }
-        });
+        })
     })
 }
 
@@ -108,11 +108,11 @@ function exec(command: string, options = {}) {
         childProcess.exec(command, options, (error, stdout, stderr) => {
             if (error) {
                 error.stderr = stderr;
-                return reject(error);
+                return reject(error)
             }
-            resolve({ stdout: stdout });
-        });
-    });
+            resolve({ stdout: stdout })
+        })
+    })
 }
 
 
@@ -120,7 +120,7 @@ ipcMain.on('check', async (event, arg) => {
     const config: InstallConfig = JSON.parse(arg)
     
     try {
-        let appPath = getInstallDir(config);
+        let appPath = getInstallDir(config)
 
         if (!fs.existsSync(appPath)) {
             fs.mkdirSync(appPath)
@@ -165,8 +165,9 @@ ipcMain.on('check_database_connection', async (event, arg) => {
 })
 
 ipcMain.on('install', async (event, arg) => {
-
+    const isWin32 = process.platform === 'win32'
     const config: InstallConfig = JSON.parse(arg)
+
     try {
         const db = new pg.Client({
             host: config.dbHost!,
@@ -176,7 +177,7 @@ ipcMain.on('install', async (event, arg) => {
             database: "postgres",
         })
 
-        const progress = ProcessSender(event);
+        const progress = ProcessSender(event)
 
         progress(1, 'Connecting postgres...')
         await db.connect()
@@ -208,7 +209,7 @@ ipcMain.on('install', async (event, arg) => {
         for (let dir of ["core-frontend", "core-backend"]) {
             dir = path.resolve(__dirname, '..', '..', dir)
             if (fs.existsSync(dir)) {
-                if (process.platform === 'win32') {
+                if (isWin32) {
                     rimraf.sync(dir)
                 } else {
                     await exec(`rm -Rf ${dir}`)
@@ -222,18 +223,20 @@ ipcMain.on('install', async (event, arg) => {
         progress(18, 'Fetching core-backend...')
         await exec('yarn backend:clone')
 
-        for (let dir of ["dbms", "dbms_auth"]) {
-            progress(dir == "dbms" ? 20 : 25, `Migrating ${dir == "dbms" ? 'meta' : 'auth'}...`)
-            dir = path.resolve(__dirname, '..', '..', 'core-backend', dir)
+        const liquibaseParams = '--username=s_su --password=s_su --driver=org.postgresql.Driver update'
+        const backendPath = path.resolve(__dirname, '..', '..', 'core-backend')
+        const dbmsPath = path.resolve(backendPath, 'dbms')
+        const dbmsAuthPath = path.resolve(backendPath, 'dbms_auth')
+        const liquibase = path.resolve(dbmsPath, 'liquibase', 'liquibase')
+
+        progress(20, `Migrating core...`)
+        await exec(`cd ${dbmsPath} && ${isWin32 ? 'call ' : ''}${liquibase}${isWin32 ? '.bat' : ''} --changeLogFile=${path.resolve(dbmsPath, 'db.changelog.xml')} --url=jdbc:postgresql://${config.dbHost}:${config.dbPort}/${config.dbPrefix}meta ${liquibaseParams}`)
         
-            if (process.platform === 'win32') {
-                await exec(`cd ${dir}\r\n${fs.readFileSync(path.resolve(dir, 'update.bat'), { 
-                    encoding: 'utf-8' 
-                })}`)
-            } else {
-                await exec(path.resolve(dir, 'update'))
-            }
-        }
+        progress(22, `Migrating meta...`)
+        await exec(`cd ${dbmsAuthPath} && ${isWin32 ? 'call ' : ''}${liquibase}${isWin32 ? '.bat' : ''} --changeLogFile=${path.resolve(dbmsAuthPath, 'db.changelog.meta.xml')} --url=jdbc:postgresql://${config.dbHost}:${config.dbPort}/${config.dbPrefix}meta ${liquibaseParams}`)
+        
+        progress(25, `Migrating auth...`)
+        await exec(`cd ${dbmsAuthPath} && ${isWin32 ? 'call ' : ''}${liquibase}${isWin32 ? '.bat' : ''} --changeLogFile=${path.resolve(dbmsAuthPath, 'db.changelog.auth.xml')} --url=jdbc:postgresql://${config.dbHost}:${config.dbPort}/${config.dbPrefix}auth ${liquibaseParams}`)
 
         progress(28, 'Installing backend dependencies...')
         await exec('yarn backend:install')
@@ -286,7 +289,7 @@ ipcMain.on('install', async (event, arg) => {
         }
 
         progress(84, 'Moving backend...')
-        await exec(`cp -R ${path.resolve(__dirname, '..', '..', 'core-backend', 'bin')}/* ${installDir}`)
+        await exec(`cp -R ${path.resolve(backendPath, 'bin')}/* ${installDir}`)
 
         progress(86, 'Moving frontend...')
         await exec(`cp -R ${path.resolve(__dirname, '..', '..', 'core-frontend', 'build')}/* ${installDir}/public`)

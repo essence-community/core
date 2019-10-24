@@ -68,6 +68,6 @@ var App = function () {
                     setStep(step + 1);
                 }, onPrev: function () {
                     setStep(step - 1);
-                }, setTitle: setTitle, setSubtitle: setSubtitle, config: config, setConfig: function (cfg) { return setConfig(__assign(__assign({}, config), cfg)); } }))));
+                }, setTitle: setTitle, setSubtitle: setSubtitle, config: config, setConfig: function (cfg) { return setConfig(__assign({}, config, cfg)); } }))));
 };
 react_dom_1.default.render(react_1.default.createElement(App, null), document.getElementById('app'));
