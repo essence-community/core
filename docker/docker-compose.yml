@@ -3,7 +3,7 @@ services:
   web-build:
     build: ./web-build
     volumes:
-      - './../frontend:/core-frontend'
+      - './../:/core'
       - './dist:/dist'
     environment:
       REACT_APP_BASE_URL: /api
@@ -14,7 +14,7 @@ services:
     build: ./gate-build
     volumes:
       - './dist:/dist'
-      - './../backend:/core-backend'
+      - './../:/core'
     environment:
       GATE_NODE_NAME: gate
 
@@ -41,8 +41,7 @@ services:
     depends_on:
       - postgres
     volumes:
-      - '../backend/dbms:/dbms'
-      - '../backend/dbms_auth:/dbms_auth'
+      - '../:/core'
       - './liquibase/scripts:/scripts'
     environment:
       WAIT_HOSTS: postgres:5432
