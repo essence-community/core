@@ -38,7 +38,7 @@ ck_d_plugin = "PostgreSQLDb"
   core = true
   poolMin = 1
   poolMax = 100
-  connectString = "postgres://s_su:s_su@postgres:5432/core"
+  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
 [[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
