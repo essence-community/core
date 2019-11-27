@@ -10,6 +10,17 @@ ck_id = "meta"
   connectString = "postgres://s_mc:s_mc@postgres:5432/core"
 
 [[data]]
+cv_description = "Локализация meta"
+ck_d_plugin = "CorePgLocalization"
+ck_id = "localization"
+
+  [data.cct_params]
+  poolMin = 1
+  poolMax = 100
+  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
+
+
+[[data]]
 cv_description = "Семафор meta"
 ck_d_plugin = "CorePgSemaphore"
 ck_id = "semaphore"
