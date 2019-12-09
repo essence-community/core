@@ -1,4 +1,4 @@
-FROM node:11
+FROM node:12
 
 ENV TZ=Europe/Moscow
 RUN ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone
