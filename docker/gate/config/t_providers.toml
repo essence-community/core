@@ -39,6 +39,18 @@ ck_d_plugin = "PostgreSQLDb"
   poolMin = 1
   poolMax = 100
   connectString = "postgres://s_mc:s_mc@postgres:5432/core"
+
+[[data]]
+ck_id = "s_ic_adm"
+cv_description = "Провайдер управления интеграцией"
+cl_autoload = true
+ck_d_plugin = "PostgreSQLDb"
+
+  [data.cct_params]
+  core = true
+  poolMin = 1
+  poolMax = 100
+  connectString = "postgres://s_ic:s_ic@postgres:5432/core_integr"
 [[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
