@@ -1,15 +1,4 @@
 [[data]]
-cv_description = "Оповещение meta"
-ck_d_plugin = "CorePgNotification"
-ck_id = "meta"
-
-  [data.cct_params]
-  authProvider = "auth"
-  poolMin = 1
-  poolMax = 100
-  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
-
-[[data]]
 cv_description = "Локализация meta"
 ck_d_plugin = "CorePgLocalization"
 ck_id = "localization"
@@ -19,6 +8,16 @@ ck_id = "localization"
   poolMax = 100
   connectString = "postgres://s_mc:s_mc@postgres:5432/core"
 
+[[data]]
+cv_description = "Оповещение meta"
+ck_d_plugin = "CorePgNotification"
+ck_id = "meta"
+
+  [data.cct_params]
+  authProvider = "auth"
+  poolMin = 1
+  poolMax = 100
+  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
 
 [[data]]
 cv_description = "Семафор meta"
