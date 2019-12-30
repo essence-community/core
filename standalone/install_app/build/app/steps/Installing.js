@@ -44,14 +44,14 @@ var Installing = function (props) {
                         error))))),
         react_1.default.createElement(core_1.Panel, { align: "bottom", borderWidth: 0, p: "1rem" },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
-                react_1.default.createElement(core_1.Flexbox, { flex: 1 },
+                error !== '' && (react_1.default.createElement(core_1.Flexbox, { flex: 1 },
                     react_1.default.createElement(core_1.Button, { decoration: "outline", onClick: function () {
                             setError('');
                             setMessage('Retrying...');
                             setProgress(0);
                             electron_1.ipcRenderer.send('install', JSON.stringify(props.config));
-                        }, children: "Retry installation" })),
-                react_1.default.createElement(core_1.Button, { onClick: function () {
+                        }, children: "Retry installation" }))),
+                react_1.default.createElement(core_1.Button, { disabled: error === '', onClick: function () {
                         electron_1.ipcRenderer.send('close');
                     }, children: "Close" })))));
 };

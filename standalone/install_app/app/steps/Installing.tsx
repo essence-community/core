@@ -26,20 +26,20 @@ const Installing = (props: StepProps) => {
         })
 
         ipcRenderer.send('install', JSON.stringify(props.config))
-    },[])
+    }, [])
 
     return (
         <Block>
             <Block p="1rem" pt="5rem">
                 <Flexbox column >
                     <Block flex={1}>
-                        <Meter 
+                        <Meter
                             shape="square"
                             size="xlarge"
                             color={c => error.length ? c.accent.red.hex() : c.primary.hex()}
                             decoration="outline"
                             animated
-                            percent={progress} 
+                            percent={progress}
                         />
                     </Block>
                     <C1 color={c => c.light.hex()}>{message}</C1>
@@ -59,19 +59,22 @@ const Installing = (props: StepProps) => {
             </Block>
             <Panel align="bottom" borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="flex-end">
-                    <Flexbox flex={1}>
-                        <Button
-                            decoration="outline"
-                            onClick={() => {
-                                setError('')
-                                setMessage('Retrying...')
-                                setProgress(0)
-                                ipcRenderer.send('install', JSON.stringify(props.config))
-                            }}
-                            children="Retry installation"
-                        />
-                    </Flexbox>
+                    {error !== '' && (
+                        <Flexbox flex={1}>
+                            <Button
+                                decoration="outline"
+                                onClick={() => {
+                                    setError('')
+                                    setMessage('Retrying...')
+                                    setProgress(0)
+                                    ipcRenderer.send('install', JSON.stringify(props.config))
+                                }}
+                                children="Retry installation"
+                            />
+                        </Flexbox>
+                    )}
                     <Button
+                        disabled={error === ''}
                         onClick={() => {
                             ipcRenderer.send('close')
                         }}
