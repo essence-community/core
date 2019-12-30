@@ -28,11 +28,12 @@ var GeneralSetup = function (props) {
     }, []);
     return (react_1.default.createElement(core_1.Block, null,
         react_1.default.createElement(core_1.Block, { p: "1rem", pt: "5rem" },
-            react_1.default.createElement(core_1.TextField, { label: "Install location", value: props.config.appLocation, onChange: function (e) {
-                    props.setConfig({
-                        appLocation: e.target.value
-                    });
-                }, hint: "Provide path where you would like to install app", mb: "1rem" }),
+            react_1.default.createElement(core_1.Flexbox, { flex: 1 },
+                react_1.default.createElement(core_1.TextField, { flex: 1, label: "Install location", value: props.config.appLocation, onChange: function (e) {
+                        props.setConfig({
+                            appLocation: e.target.value
+                        });
+                    }, hint: "Provide path where you would like to install app", mb: "2rem" })),
             react_1.default.createElement(core_1.Flexbox, null,
                 react_1.default.createElement(core_1.TextField, { flex: 1, label: "Hostname", value: props.config.serverHost, onChange: function (e) {
                         props.setConfig({
@@ -49,7 +50,7 @@ var GeneralSetup = function (props) {
                             appPort: e.target.value
                         });
                     }, mb: "1rem" }))),
-        react_1.default.createElement(core_1.Panel, { align: "bottom", css: { borderLeft: 0, borderRight: 0, borderBottom: 0 } },
+        react_1.default.createElement(core_1.Panel, { align: "bottom", borderWidth: 0, p: "1rem" },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "flex-end" },
                 react_1.default.createElement(core_1.Button, { onClick: function () {
                         electron_1.ipcRenderer.send('check', JSON.stringify(props.config));

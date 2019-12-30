@@ -38,8 +38,7 @@ const Installing = (props: StepProps) => {
                             size="xlarge"
                             color={c => error.length ? c.accent.red.hex() : c.primary.hex()}
                             decoration="outline"
-                            animated 
-                            animation={error.length === 0}
+                            animated
                             percent={progress} 
                         />
                     </Block>
@@ -58,7 +57,7 @@ const Installing = (props: StepProps) => {
                     )}
                 </Flexbox>
             </Block>
-            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
+            <Panel align="bottom" borderWidth={0} p={"1rem"}>
                     
             </Panel>
         </Block>

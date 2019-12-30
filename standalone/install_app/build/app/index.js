@@ -51,9 +51,10 @@ var App = function () {
     var _b = react_1.useState(1), step = _b[0], setStep = _b[1];
     var _c = react_1.useState("Installation"), title = _c[0], setTitle = _c[1];
     var _d = react_1.useState(""), subtitle = _d[0], setSubtitle = _d[1];
+    var theme = core_1.useFlow().theme;
     var Step = steps[step - 1];
     return (react_1.default.createElement(core_1.Viewport, { theme: dark_1.default },
-        react_1.default.createElement(core_1.Panel, null,
+        react_1.default.createElement(core_1.Panel, { borderWidth: 0, p: "1rem" },
             react_1.default.createElement(core_1.Flexbox, { justifyContent: "space-between", alignItems: "center" },
                 react_1.default.createElement(core_1.Block, null,
                     react_1.default.createElement(core_1.H1, null, title),
@@ -68,6 +69,6 @@ var App = function () {
                     setStep(step + 1);
                 }, onPrev: function () {
                     setStep(step - 1);
-                }, setTitle: setTitle, setSubtitle: setSubtitle, config: config, setConfig: function (cfg) { return setConfig(__assign({}, config, cfg)); } }))));
+                }, setTitle: setTitle, setSubtitle: setSubtitle, config: config, setConfig: function (cfg) { return setConfig(__assign(__assign({}, config), cfg)); } }))));
 };
 react_dom_1.default.render(react_1.default.createElement(App, null), document.getElementById('app'));

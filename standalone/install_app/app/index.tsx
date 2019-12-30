@@ -1,6 +1,6 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
-import { Viewport, Panel, H1, Flexbox, H4, T1, C1, Block } from "@flow-ui/core"
+import { Viewport, Panel, H1, Flexbox, H4, T1, C1, Block, useFlow } from "@flow-ui/core"
 import dark from "@flow-ui/core/misc/themes/dark"
 import GeneralSetup from './steps/GeneralSetup'
 import DatabaseSetup from './steps/DatabaseSetup'
@@ -52,12 +52,12 @@ const App = () => {
     const [step, setStep] = useState(1)
     const [title, setTitle] = useState("Installation")
     const [subtitle, setSubtitle] = useState("")
-    
+    const { theme } = useFlow()
     const Step = steps[step - 1]
 
     return (
         <Viewport theme={dark}>
-            <Panel>
+            <Panel borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="space-between" alignItems="center">
                     <Block>
                         <H1>{title}</H1>

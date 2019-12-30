@@ -11,11 +11,9 @@ const Finish = (props: StepProps) => {
     return (
         <Block>
             <Block p="1rem" pt="5rem">
-                
+                <C3 color={c => c.accent.orange.hex()}>To start server, please goto installation dir </C3>
+                <C3 color={c => c.accent.orange.hex()}>& run command "yarn && yarn server"</C3>
             </Block>
-            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
-                
-            </Panel>
         </Block>
     )
 }

@@ -96,7 +96,7 @@ const LocationSetup = (props: StepProps) => {
 
                 <C3 color={c => c.light.hex()}>Installation will create "{props.config.dbPrefix}meta" and "{props.config.dbPrefix}auth" databases</C3>
             </Block>
-            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
+            <Panel align="bottom" borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="flex-end">
                     <Button
                         color={c => c.accent.orange.hex()}

@@ -15,7 +15,8 @@ var Finish = function (props) {
         props.setSubtitle('Installation complete successfully');
     }, []);
     return (react_1.default.createElement(core_1.Block, null,
-        react_1.default.createElement(core_1.Block, { p: "1rem", pt: "5rem" }),
-        react_1.default.createElement(core_1.Panel, { align: "bottom", css: { borderLeft: 0, borderRight: 0, borderBottom: 0 } })));
+        react_1.default.createElement(core_1.Block, { p: "1rem", pt: "5rem" },
+            react_1.default.createElement(core_1.C3, { color: function (c) { return c.accent.orange.hex(); } }, "To start server, please goto installation dir "),
+            react_1.default.createElement(core_1.C3, { color: function (c) { return c.accent.orange.hex(); } }, "& run command \"yarn && yarn server\""))));
 };
 exports.default = Finish;

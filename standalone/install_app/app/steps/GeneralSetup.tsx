@@ -14,27 +14,30 @@ const GeneralSetup = (props: StepProps) => {
                 return
             }
             notify({
-                title:'Error',
+                title: 'Error',
                 message: arg,
                 timeout: 5000
             })
         })
     }, [])
-    
+
     return (
         <Block>
             <Block p="1rem" pt="5rem">
-                <TextField
-                    label="Install location"
-                    value={props.config.appLocation}
-                    onChange={e => {
-                        props.setConfig({
-                            appLocation: e.target.value
-                        })
-                    }}
-                    hint="Provide path where you would like to install app"
-                    mb="1rem"
-                />
+                <Flexbox flex={1}>
+                    <TextField
+                        flex={1}
+                        label="Install location"
+                        value={props.config.appLocation}
+                        onChange={e => {
+                            props.setConfig({
+                                appLocation: e.target.value
+                            })
+                        }}
+                        hint="Provide path where you would like to install app"
+                        mb="2rem"
+                    />
+                </Flexbox>
                 <Flexbox>
                     <TextField
                         flex={1}
@@ -73,7 +76,7 @@ const GeneralSetup = (props: StepProps) => {
                     />
                 </Flexbox>
             </Block>
-            <Panel align="bottom" css={{borderLeft: 0, borderRight: 0, borderBottom: 0}}>
+            <Panel align="bottom" borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="flex-end">
                     <Button
                         onClick={() => {
