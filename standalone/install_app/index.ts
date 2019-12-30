@@ -7,6 +7,7 @@ import { InstallConfig } from './app'
 const childProcess = require('child_process')
 
 let win: Electron.BrowserWindow | null
+const isWin32 = process.platform === 'win32'
 let installDir: string;
 
 const createWindow = () => {
@@ -165,7 +166,6 @@ ipcMain.on('check_database_connection', async (event, arg) => {
 })
 
 ipcMain.on('install', async (event, arg) => {
-    const isWin32 = process.platform === 'win32'
     const config: InstallConfig = JSON.parse(arg)
 
     try {
@@ -332,5 +332,5 @@ ipcMain.on('close', async (event, arg) => {
 })
 
 ipcMain.on('open_installation_dir', async (event, arg) => {
-    exec(`open ${installDir}`)
+    exec(`${isWin32 ? 'start' : 'open'} ${installDir}`)
 })

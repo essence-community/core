@@ -57,6 +57,7 @@ var pg_1 = __importDefault(require("pg"));
 var rimraf_1 = __importDefault(require("rimraf"));
 var childProcess = require('child_process');
 var win;
+var isWin32 = process.platform === 'win32';
 var installDir;
 var createWindow = function () {
     win = new electron_1.BrowserWindow({
@@ -246,11 +247,10 @@ electron_1.ipcMain.on('check_database_connection', function (event, arg) { retur
     });
 }); });
 electron_1.ipcMain.on('install', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
-    var isWin32, config, db, progress_1, _i, _a, user, _b, _c, dir, liquibaseParams, backendPath, dbmsPath, dbmsAuthPath, liquibase, _d, _e, dir, configFiles, configReplaces, _loop_1, _f, configFiles_1, fileName, packageJson, error_5;
+    var config, db, progress_1, _i, _a, user, _b, _c, dir, liquibaseParams, backendPath, dbmsPath, dbmsAuthPath, liquibase, _d, _e, dir, configFiles, configReplaces, _loop_1, _f, configFiles_1, fileName, packageJson, error_5;
     return __generator(this, function (_g) {
         switch (_g.label) {
             case 0:
-                isWin32 = process.platform === 'win32';
                 config = JSON.parse(arg);
                 _g.label = 1;
             case 1:
@@ -447,7 +447,7 @@ electron_1.ipcMain.on('close', function (event, arg) { return __awaiter(void 0, 
 }); });
 electron_1.ipcMain.on('open_installation_dir', function (event, arg) { return __awaiter(void 0, void 0, void 0, function () {
     return __generator(this, function (_a) {
-        exec("open " + installDir);
+        exec((isWin32 ? 'start' : 'open') + " " + installDir);
         return [2 /*return*/];
     });
 }); });
