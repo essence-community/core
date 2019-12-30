@@ -2,14 +2,14 @@
     "handlers": {
         "errors": {
             "class": "rufus/handlers/rotating",
-            "file": "#INSTALL_PATH#/logs/error.log",
+            "file": "#ERROR_LOGS_PATH#",
             "level": "ERROR",
             "maxSize": "30mb",
             "maxFile": "30"
         },
         "main": {
             "class": "rufus/handlers/rotating",
-            "file": "#INSTALL_PATH#/logs/main.log",
+            "file": "#MAIN_LOGS_PATH#",
             "maxSize": "30mb",
             "maxFile": "30"
         },

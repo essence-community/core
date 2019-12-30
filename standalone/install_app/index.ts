@@ -272,7 +272,8 @@ ipcMain.on('install', async (event, arg) => {
         ]
         
         const configReplaces = [
-            ['#INSTALL_PATH#', installDir],
+            ['#MAIN_LOGS_PATH#', path.resolve(installDir, 'logs', 'main.json')],
+            ['#ERROR_LOGS_PATH#', path.resolve(installDir, 'logs', 'error.log')],
             ['#DB_HOST#', config.dbHost],
             ['#DB_PORT#', config.dbPort],
             ['#SERVER_HOST#', config.serverHost],
@@ -284,6 +285,9 @@ ipcMain.on('install', async (event, arg) => {
             let fileContent = fs.readFileSync(path.resolve(__dirname, '..', '..', 'config', fileName), { encoding: 'utf-8'})
             configReplaces.map(replace => {
                 fileContent = fileContent.replace(new RegExp(replace[0]!, 'g'), replace[1]!)
+                if (isWin32) {
+                    fileContent = fileContent.replace(/\\/g, "\\\\")
+                }
             })
             fs.writeFileSync(path.resolve(installDir, 'config', fileName), fileContent, { encoding: "utf-8"})
         }
@@ -303,10 +307,10 @@ ipcMain.on('install', async (event, arg) => {
 
         packageJson.nodemonConfig.env = {
             ...packageJson.nodemonConfig.env,
-            LOGGER_CONF: `${installDir}/config/logger.json`,
-            PROPERTY_DIR: `${installDir}/config`,
-            GATE_UPLOAD_DIR: `${installDir}/tmp`,
-            NEDB_TEMP_DB: `${installDir}/tmp/db`,    
+            LOGGER_CONF: path.resolve(installDir, 'config', 'logger.json'),
+            PROPERTY_DIR: path.resolve(installDir, 'config'),
+            GATE_UPLOAD_DIR: path.resolve(installDir, 'tmp'),
+            NEDB_TEMP_DB: path.resolve(installDir, 'tmp', 'db'),    
         }
 
         fs.writeFileSync(path.resolve(installDir, 'package.json'), JSON.stringify(packageJson, null, 2), { encoding: 'utf-8' })
