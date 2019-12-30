@@ -7,6 +7,7 @@ import { InstallConfig } from './app'
 const childProcess = require('child_process')
 
 let win: Electron.BrowserWindow | null
+let installDir: string;
 
 const createWindow = () => {
     win = new BrowserWindow({
@@ -114,7 +115,6 @@ function exec(command: string, options = {}) {
         })
     })
 }
-
 
 ipcMain.on('check', async (event, arg) => {
     const config: InstallConfig = JSON.parse(arg)
@@ -252,7 +252,7 @@ ipcMain.on('install', async (event, arg) => {
 
         progress(75, 'Creating catalogs...')
 
-        const installDir = getInstallDir(config)
+        installDir = getInstallDir(config)
 
         for (const dir of ["config", "logs", "tmp", "public"]) {
             fs.mkdirSync(path.resolve(installDir, dir))
@@ -299,6 +299,8 @@ ipcMain.on('install', async (event, arg) => {
         await exec(`cp -R ${path.resolve(__dirname, '..', '..', 'core-frontend', 'build')}/* ${installDir}/public`)
 
         progress(90, 'Installing server dependencies...')
+        await exec(`cd ${installDir} && yarn install`)
+
         progress(95, 'Patching package...')
         
         const packageJson: any = JSON.parse(
@@ -323,4 +325,12 @@ ipcMain.on('install', async (event, arg) => {
         console.error(error)
         event.sender.send('install_error', 'FATAL ERROR: ' + error.message)
     }
+})
+
+ipcMain.on('close', async (event, arg) => {
+    app.quit()
+})
+
+ipcMain.on('open_installation_dir', async (event, arg) => {
+    exec(`open ${installDir}`)
 })
