@@ -58,7 +58,26 @@ const Installing = (props: StepProps) => {
                 </Flexbox>
             </Block>
             <Panel align="bottom" borderWidth={0} p={"1rem"}>
-                    
+                <Flexbox justifyContent="flex-end">
+                    <Flexbox flex={1}>
+                        <Button
+                            decoration="outline"
+                            onClick={() => {
+                                setError('')
+                                setMessage('Retrying...')
+                                setProgress(0)
+                                ipcRenderer.send('install', JSON.stringify(props.config))
+                            }}
+                            children="Retry installation"
+                        />
+                    </Flexbox>
+                    <Button
+                        onClick={() => {
+                            ipcRenderer.send('close')
+                        }}
+                        children="Close"
+                    />
+                </Flexbox>
             </Panel>
         </Block>
     )
