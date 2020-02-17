@@ -1,4 +1,4 @@
-import { Block, Button, C1, Flexbox, Icon, Meter, Panel, Divider } from "@flow-ui/core"
+import { Block, Button, Text, Flexbox, Meter, Divider } from "@flow-ui/core"
 import React, { useEffect, useState } from "react"
 import { StepProps } from ".."
 import { ipcRenderer } from 'electron'
@@ -35,29 +35,23 @@ const Installing = (props: StepProps) => {
                     <Block flex={1}>
                         <Meter
                             shape="square"
-                            size="xlarge"
-                            color={c => error.length ? c.accent.red.hex() : c.primary.hex()}
+                            size="xl"
                             decoration="outline"
                             animated
                             percent={progress}
                         />
                     </Block>
-                    <C1 color={c => c.light.hex()}>{message}</C1>
+                    <Text color={c => c.light.hex()}>{message}</Text>
                     {error && (
                         <Block>
                             <Divider />
-                            <C1 color={c => c.accent.red.hex()}>
-                                <Icon
-                                    size={"1.5rem"}
-                                    pr="0.5rem"
-                                    type={t => t.outline.alertTriangle}
-                                /> {error}
-                            </C1>
+                            <Text>
+                                {error}
+                            </Text>
                         </Block>
                     )}
                 </Flexbox>
             </Block>
-            <Panel align="bottom" borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="flex-end">
                     {error !== '' && (
                         <Flexbox flex={1}>
@@ -81,7 +75,6 @@ const Installing = (props: StepProps) => {
                         children="Close"
                     />
                 </Flexbox>
-            </Panel>
         </Block>
     )
 }

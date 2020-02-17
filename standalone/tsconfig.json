@@ -5,6 +5,7 @@
         "allowSyntheticDefaultImports": true,
         "noImplicitReturns": true,
         "strictNullChecks": true,
+        "skipLibCheck": true,
         "allowJs": false,
         "declaration": false,
         "lib": ["es2018","dom"],
@@ -15,6 +16,6 @@
         "outDir": "./install_app/build",
         "baseUrl": "./install_app"
     },
-    "include": ["./install_app/**/*"],
-    "exclude": ["node_modules", "./install_app/app"]
+    "include": ["./install_app/**/*.*"],
+    "exclude": ["node_modules", "./install_app/build"]
 }

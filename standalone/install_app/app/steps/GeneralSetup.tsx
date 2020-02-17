@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import { StepProps } from ".."
-import { Panel, Button, Block, H1, Flexbox, TextField, Icon, notify } from "@flow-ui/core"
+import { Button, Block, Flexbox, TextField, notify } from "@flow-ui/core"
 import { ipcRenderer } from 'electron'
 
 const GeneralSetup = (props: StepProps) => {
@@ -76,8 +76,7 @@ const GeneralSetup = (props: StepProps) => {
                     />
                 </Flexbox>
             </Block>
-            <Panel align="bottom" borderWidth={0} p={"1rem"}>
-                <Flexbox justifyContent="flex-end">
+            <Flexbox justifyContent="flex-end">
                     <Button
                         onClick={() => {
                             ipcRenderer.send('check', JSON.stringify(props.config))
@@ -85,12 +84,10 @@ const GeneralSetup = (props: StepProps) => {
                         children={(
                             <Flexbox>
                                 Next
-                                <Icon size="1rem" pl="0.5rem" type={t => t.outline.arrowIosForward} />
                             </Flexbox>
                         )}
                     />
                 </Flexbox>
-            </Panel>
         </Block>
     )
 }

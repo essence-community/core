@@ -1,6 +1,6 @@
 import React, { useEffect } from "react"
 import { StepProps } from ".."
-import { Panel, Button, Block, H1, Flexbox, TextField, Icon, Select, C3, notify, Divider } from "@flow-ui/core"
+import { Button, Block, Text, Flexbox, TextField, notify, Divider } from "@flow-ui/core"
 import { ipcRenderer } from 'electron'
 
 const LocationSetup = (props: StepProps) => {
@@ -79,33 +79,25 @@ const LocationSetup = (props: StepProps) => {
                     })}
                     mb="1rem"
                 />
-                <C3 
-                    color={c => c.accent.orange.hex()}
+                <Text 
                     children={(
                         <Flexbox alignItems="center">
-                            <Icon 
-                                size={"1.5rem"}
-                                pr="0.5rem"
-                                type={t => t.outline.alertTriangle} 
-                            /> Credential should be with admin access. Installaction process will create core users
+                            Credential should be with admin access. Installaction process will create core users
                         </Flexbox>
                     )}
                 />
 
                 <Divider mt="1rem" mb="1rem" />
 
-                <C3 color={c => c.light.hex()}>Installation will create "{props.config.dbPrefix}meta" and "{props.config.dbPrefix}auth" databases</C3>
+                <Text color={c => c.light.hex()}>Installation will create "{props.config.dbPrefix}meta" and "{props.config.dbPrefix}auth" databases</Text>
             </Block>
-            <Panel align="bottom" borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="flex-end">
                     <Button
-                        color={c => c.accent.orange.hex()}
                         onClick={() => {
                             ipcRenderer.send('check_database_connection', JSON.stringify(props.config))
                         }}
                         children={(
                             <Flexbox>
-                                <Icon size="1rem" pr="0.5rem" type={t => t.outline.swap} />
                                 Check connection
                             </Flexbox>
                         )}
@@ -117,7 +109,6 @@ const LocationSetup = (props: StepProps) => {
                         onClick={props.onPrev}
                         children={(
                             <Flexbox>
-                                <Icon size="1rem" pr="0.5rem" type={t => t.outline.arrowIosBack} />
                                 Back
                             </Flexbox>
                         )}
@@ -127,12 +118,10 @@ const LocationSetup = (props: StepProps) => {
                         children={(
                             <Flexbox>
                                 Next
-                                <Icon size="1rem" pl="0.5rem" type={t => t.outline.arrowIosForward} />
                             </Flexbox>
                         )}
                     />
                 </Flexbox>
-            </Panel>
         </Block>
     )
 }

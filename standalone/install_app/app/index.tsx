@@ -1,6 +1,7 @@
 import React, { useState } from "react"
 import ReactDOM from "react-dom"
-import { Viewport, Panel, H1, Flexbox, H4, T1, C1, Block, useFlow } from "@flow-ui/core"
+import { Viewport, Flexbox, Block, Text } from "@flow-ui/core"
+import { useTheme } from "@flow-ui/whale"
 import dark from "@flow-ui/core/misc/themes/dark"
 import GeneralSetup from './steps/GeneralSetup'
 import DatabaseSetup from './steps/DatabaseSetup'
@@ -52,20 +53,17 @@ const App = () => {
     const [step, setStep] = useState(1)
     const [title, setTitle] = useState("Installation")
     const [subtitle, setSubtitle] = useState("")
-    const { theme } = useFlow()
     const Step = steps[step - 1]
 
     return (
         <Viewport theme={dark}>
-            <Panel borderWidth={0} p={"1rem"}>
                 <Flexbox justifyContent="space-between" alignItems="center">
                     <Block>
-                        <H1>{title}</H1>
-                        <C1 color={c => c.light.hex()}>{subtitle}</C1>
+                        <h1>{title}</h1>
+                        <Text>{subtitle}</Text>
                     </Block>
-                    <T1 color={c => c.light.hex()}>Step: {step}/{steps.length}</T1>
+                    <Text color={c => c.light.hex()}>Step: {step}/{steps.length}</Text>
                 </Flexbox>
-            </Panel>
             <Block mt="3rem">
                 <Step 
                     onNext={() => {
