@@ -1,16 +1,17 @@
 const path = require("path");
 const webpack = require("webpack");
+const HtmlWebpackPlugin = require('html-webpack-plugin');
 
 module.exports = function (dir) {
     const config = {
         mode: 'production',
         target: "electron-renderer",
         entry: {
-            app: [__dirname + "/install_app/app/index.tsx"]
+            app: [__dirname + "/src/app/index.tsx"]
         },
         output: {
             filename: "app.js",
-            path: __dirname + "/install_app/build/app",
+            path: __dirname + "/build/app",
         },
         devtool: "source-map",
         resolve: {
@@ -39,7 +40,11 @@ module.exports = function (dir) {
                     }
                 }
             ]
-        }
+        },
+        plugins: [new HtmlWebpackPlugin({
+            title: "Install CORE",
+            template: path.join(__dirname, "public", "index.html"),
+        })]
     }
     return config;
 }

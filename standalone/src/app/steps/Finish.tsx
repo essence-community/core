@@ -1,12 +1,12 @@
 import React, { useEffect } from "react"
 import { StepProps } from ".."
 import { Button, Block, Flexbox, Text } from "@flow-ui/core"
-import { ipcRenderer } from 'electron'
+import { ipcRenderer } from "electron"
 
 const Finish = (props: StepProps) => {
     useEffect(() => {
-        props.setTitle('Complete')
-        props.setSubtitle('Installation complete successfully')
+        props.setTitle("Complete")
+        props.setSubtitle("Installation complete successfully")
     }, [])
     return (
         <Block>
@@ -16,22 +16,22 @@ const Finish = (props: StepProps) => {
                 </Block>
             </Block>
             <Flexbox justifyContent="flex-end">
-                    <Flexbox flex={1}>
-                        <Button
-                            decoration="outline"
-                            onClick={() => {
-                                ipcRenderer.send('open_installation_dir')
-                            }}
-                            children="Show installation directory"
-                        />
-                    </Flexbox>
+                <Flexbox flex={1}>
                     <Button
+                        decoration="outline"
                         onClick={() => {
-                            ipcRenderer.send('close')
+                            ipcRenderer.send("open_installation_dir")
                         }}
-                        children="Close"
+                        children="Show installation directory"
                     />
                 </Flexbox>
+                <Button
+                    onClick={() => {
+                        ipcRenderer.send("close")
+                    }}
+                    children="Close"
+                />
+            </Flexbox>
         </Block>
     )
 }

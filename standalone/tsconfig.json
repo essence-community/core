@@ -8,14 +8,14 @@
         "skipLibCheck": true,
         "allowJs": false,
         "declaration": false,
-        "lib": ["es2018","dom"],
-        "target": "es5",
+        "lib": ["es2019","dom"],
+        "target": "es2019",
         "module": "commonjs",
         "types": ["node"],
         "jsx": "react",
-        "outDir": "./install_app/build",
-        "baseUrl": "./install_app"
+        "outDir": "./build",
+        "baseUrl": "./src"
     },
-    "include": ["./install_app/**/*.*"],
-    "exclude": ["node_modules", "./install_app/build"]
+    "files": ["./src/index.ts"],
+    "exclude": ["node_modules", "./build"]
 }

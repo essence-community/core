@@ -19,7 +19,7 @@
     },
     "loggers": {
         "root": {
-            "level": "TRACE",
+            "level": "INFO",
             "handlers": [
                 "main",
                 "errors"
