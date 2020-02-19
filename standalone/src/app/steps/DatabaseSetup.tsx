@@ -74,14 +74,28 @@ const LocationSetup = (props: StepProps) => {
                 />
                 <TextField
                     flex={1}
-                    label="Database prefix"
-                    value={props.config.dbPrefix}
+                    label="Database meta prefix"
+                    value={props.config.dbPrefixMeta}
                     style={{
                         margin: "10px 10px 10px 10px",
                     }}
                     onChange={e =>
                         props.setConfig({
-                            dbPrefix: e.target.value,
+                            dbPrefixMeta: e.target.value,
+                        })
+                    }
+                    mb="1rem"
+                />
+                <TextField
+                    flex={1}
+                    label="Database auth prefix"
+                    value={props.config.dbPrefixAuth}
+                    style={{
+                        margin: "10px 10px 10px 10px",
+                    }}
+                    onChange={e =>
+                        props.setConfig({
+                            dbPrefixAuth: e.target.value,
                         })
                     }
                     mb="1rem"
@@ -97,7 +111,8 @@ const LocationSetup = (props: StepProps) => {
                 <Divider mt="1rem" mb="1rem" />
 
                 <Text color={c => c.light.hex()}>
-                    Installation will create "{props.config.dbPrefix}meta" and "{props.config.dbPrefix}auth" databases
+                    Installation will create "{props.config.dbPrefixMeta}meta" and "{props.config.dbPrefixAuth}auth"
+                    databases
                 </Text>
             </Block>
             <Flexbox justifyContent="flex-end">

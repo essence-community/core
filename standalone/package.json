@@ -1,5 +1,5 @@
 {
-    "name": "core-standalone",
+    "name": "core-installer",
     "author": "ABR Tech",
     "version": "0.1.0",
     "license": "MIT",
@@ -8,15 +8,16 @@
         "node": ">=12.0.0"
     },
     "scripts": {
-        "build": "tsc & webpack",
+        "build": "gulp build",
+        "build:package": "gulp build_package",
         "build:watch": "tsc -w & webpack --watch",
         "lint": "eslint --config .eslintrc.js --ext ts,tsx,js,jsx src",
         "lint:fix": "eslint --config .eslintrc.js --ext ts,tsx,js,jsx --fix src",
         "start": "electron ./build",
         "backend:install": "cd ../backend && git clean -fdx && yarn",
-        "backend:build": "cd ../core-backend && yarn build",
+        "backend:build": "cd ../backend && yarn build",
         "frontend:install": "cd ../frontend && git clean -fdx && yarn",
-        "frontend:build": "cd ../core-frontend && yarn build"
+        "frontend:build": "cd ../frontend && yarn build"
     },
     "devDependencies": {
         "@babel/cli": "^7.6.4",
@@ -39,14 +40,17 @@
         "eslint": "^6.8.0",
         "eslint-config-prettier": "^6.10.0",
         "eslint-plugin-prettier": "^3.1.2",
+        "gulp": "^4.0.2",
+        "gulp-typescript": "^6.0.0-alpha.1",
         "html-webpack-plugin": "^3.2.0",
         "prettier": "^1.19.1",
         "react": "^16.10.2",
         "react-dom": "^16.10.2",
         "ts-node": "^8.6.2",
         "typescript": "^3.7.5",
-        "webpack": "^4.41.2",
-        "webpack-cli": "^3.3.9"
+        "webpack": "^4.41.6",
+        "webpack-cli": "^3.3.9",
+        "webpack-stream": "^5.2.1"
     },
     "dependencies": {
         "adm-zip": "^0.4.14",

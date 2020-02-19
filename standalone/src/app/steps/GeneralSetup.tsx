@@ -27,7 +27,7 @@ const GeneralSetup = (props: StepProps) => {
                 <Flexbox flex={1}>
                     <TextField
                         flex={1}
-                        label="Gate location"
+                        label="BackEnd location"
                         style={{
                             margin: "10px 10px 10px 10px",
                         }}
@@ -43,7 +43,7 @@ const GeneralSetup = (props: StepProps) => {
                     />
                     <TextField
                         flex={1}
-                        label="WWW location"
+                        label="FrontEnd location"
                         style={{
                             margin: "10px 10px 10px 10px",
                         }}

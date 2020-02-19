@@ -5,6 +5,7 @@ export interface InstallConfig {
     dbConnectString?: string
     dbUsername?: string
     dbPassword?: string
-    dbPrefix?: string
+    dbPrefixAuth?: string
+    dbPrefixMeta?: string
     wwwLocation?: string
 }

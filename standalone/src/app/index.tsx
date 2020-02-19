@@ -27,7 +27,8 @@ const defaultConfig: InstallConfig = {
     dbUsername: "postgres",
     dbPassword: "postgres",
     dbConnectString: "postgres://localhost:5432/postgres",
-    dbPrefix: "core_",
+    dbPrefixMeta: "core_",
+    dbPrefixAuth: "core_",
     wwwLocation: "./www_public",
 }
 
@@ -38,7 +39,7 @@ const App = () => {
     const [subtitle, setSubtitle] = useState("")
     const Step = steps[step - 1]
     useEffect(() => {
-        ipcRenderer.send("check_config_install", JSON.stringify(config))
+        ipcRenderer.send("check_config_install")
         ipcRenderer.on("check_config_install", (event, arg) => {
             if (arg) {
                 setConfig({
@@ -51,9 +52,7 @@ const App = () => {
 
     return (
         <Viewport theme={dark}>
-            <Flexbox
-                justifyContent="space-between"
-                alignItems="center"
+            <div
                 style={{
                     margin: "10px 10px 10px 10px",
                 }}
@@ -65,31 +64,34 @@ const App = () => {
                 <Text color={c => c.light.hex()}>
                     Step: {step}/{steps.length}
                 </Text>
-            </Flexbox>
-            <Block
-                mt="3rem"
-                style={{
-                    margin: "10px 10px 10px 10px",
-                }}
-            >
-                <Step
-                    onNext={() => {
-                        setStep(step + 1)
+            </div>
+            <div>
+                <Block
+                    flex={1}
+                    mt="3rem"
+                    style={{
+                        margin: "10px 10px 10px 10px",
                     }}
-                    onPrev={() => {
-                        setStep(step - 1)
-                    }}
-                    setTitle={setTitle}
-                    setSubtitle={setSubtitle}
-                    config={config}
-                    setConfig={cfg =>
-                        setConfig({
-                            ...config,
-                            ...cfg,
-                        })
-                    }
-                />
-            </Block>
+                >
+                    <Step
+                        onNext={() => {
+                            setStep(step + 1)
+                        }}
+                        onPrev={() => {
+                            setStep(step - 1)
+                        }}
+                        setTitle={setTitle}
+                        setSubtitle={setSubtitle}
+                        config={config}
+                        setConfig={cfg =>
+                            setConfig({
+                                ...config,
+                                ...cfg,
+                            })
+                        }
+                    />
+                </Block>
+            </div>
         </Viewport>
     )
 }

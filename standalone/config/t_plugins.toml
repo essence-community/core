@@ -24,6 +24,59 @@ columns = "json,result"
 extractSingleColumn = false
 
 [[data]]
+cv_name = "preparequery"
+cv_description = "Плагин преобразования запросов filter,sort"
+ck_d_provider = "authcore"
+ck_d_plugin = "PrepareQuery"
+cl_required = 1
+cl_default = 0
+cct_params = { }
+ck_id = "preparequery:authcore"
+cn_order = 1
+
+[[data]]
+cv_name = "extractrow"
+cv_description = "Плагин распаковывания вложеного json"
+ck_d_provider = "authcore"
+ck_d_plugin = "JsonRowColumnExtractor"
+cl_required = 1
+cl_default = 0
+ck_id = "extractrow:authcore"
+cn_order = 2
+
+[data.cct_params]
+columns = "json,result"
+extractSingleColumn = false
+
+[[data]]
+cv_name = "modulestorage"
+cv_description = "Место хранения модулей"
+ck_d_provider = "meta"
+ck_d_plugin = "modulestorage"
+cl_required = 0
+cl_default = 0
+ck_id = "modulestorage:meta"
+cn_order = 1
+
+  [data.cct_params]
+  cvTypeStorage = "dir"
+  cvPath = "#APP_DIR#/module"
+
+[[data]]
+ck_id = "create_patch:all"
+cv_name = "create_patch"
+ck_d_provider = "all"
+ck_d_plugin = "patcher"
+cl_required = 0
+cn_order = 1
+cl_default = 0
+cv_description = "Создает патч для обновление бд"
+
+  [data.cct_params]
+  cvTypeStorage = "dir"
+  cvPath = "#APP_DIR#/tmp"
+
+[[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
 unique = true

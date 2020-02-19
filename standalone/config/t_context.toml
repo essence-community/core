@@ -4,11 +4,11 @@ cv_path = "/api"
 cv_description = "Основныенастройкиметаинформации"
 ck_d_plugin = "CorePGContext"
 
-[data.cct_params]
-debug = true
-disableCache = true
-poolMax = 100
-connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX#meta"
+    [data.cct_params]
+    debug = true
+    disableCache = true
+    poolMax = 100
+    connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 [data."$$indexCreated"]

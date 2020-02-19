@@ -4,7 +4,7 @@ import * as path from "path"
 import pg from "pg"
 import * as URL from "url"
 import * as os from "os"
-import * as CopyDir from "copy-dir"
+import CopyDir from "copy-dir"
 import AdmZip from "adm-zip"
 import * as childProcess from "child_process"
 import { InstallConfig } from "./Config.types"
@@ -25,7 +25,7 @@ const createWindow = () => {
         },
     })
     win.loadFile(path.join(__dirname, "app/index.html"))
-    win.webContents.openDevTools()
+    //win.webContents.openDevTools()
     win.on("closed", () => {
         win = null
     })
@@ -59,6 +59,24 @@ function ProcessSender(e: Electron.IpcMainEvent) {
     }
 }
 
+function exec(
+    command: string,
+    options = {},
+): Promise<{
+    stdout: string | Buffer
+    stderr: string | Buffer
+}> {
+    return new Promise((resolve, reject) => {
+        childProcess.exec(command, options, (error: any, stdout, stderr) => {
+            if (error) {
+                error.stderr = stderr
+                return reject(error)
+            }
+            resolve({ stdout, stderr })
+        })
+    })
+}
+
 function checkJavaVersion() {
     return new Promise((resolve, reject) => {
         const spawn = childProcess.spawn("java", ["-version"])
@@ -72,6 +90,22 @@ function checkJavaVersion() {
                 reject(new Error("Java not installed"))
             }
         })
+    })
+}
+
+async function checkNodeJsVersion() {
+    const { stdout } = await exec("node -v")
+    return new Promise((resolve, reject) => {
+        stdout
+            .toString()
+            .trim()
+            .replace(/^v(\d+)\.[\d\.]+$/, (match, pattern) => {
+                if (parseInt(pattern, 10) < 12) {
+                    reject(new Error("Need version Node.js 12+"))
+                }
+                return ""
+            })
+        resolve()
     })
 }
 
@@ -90,7 +124,8 @@ function checkZip() {
             if (file.startsWith("dbms_auth") && file.endsWith(".zip")) {
                 obj[NAME_DIR_DBMS_AUTH] = true
                 zipFile[NAME_DIR_DBMS_AUTH] = path.join(__dirname, file)
-            } else if (file.startsWith("dbms") && file.endsWith(".zip")) {
+            }
+            if (file.startsWith("dbms_core") && file.endsWith(".zip")) {
                 obj.dbms = true
                 zipFile.dbms = path.join(__dirname, file)
             }
@@ -112,7 +147,7 @@ function checkZip() {
     if (!res.dbms) {
         throw new Error("Not found dbms_*.zip")
     }
-    if (!res.dbms_auth) {
+    if (!res[NAME_DIR_DBMS_AUTH]) {
         throw new Error("Not found dbms_auth_*.zip")
     }
 }
@@ -205,18 +240,6 @@ async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
     }
 }
 
-function exec(command: string, options = {}) {
-    return new Promise((resolve, reject) => {
-        childProcess.exec(command, options, (error: any, stdout, stderr) => {
-            if (error) {
-                error.stderr = stderr
-                return reject(error)
-            }
-            resolve({ stdout: stdout })
-        })
-    })
-}
-
 ipcMain.on("check", async (event, arg) => {
     const config: InstallConfig = JSON.parse(arg)
 
@@ -253,7 +276,7 @@ ipcMain.on("check", async (event, arg) => {
         }
 
         checkZip()
-
+        await checkNodeJsVersion()
         await checkJavaVersion()
 
         event.sender.send("check")
@@ -263,36 +286,64 @@ ipcMain.on("check", async (event, arg) => {
 })
 
 ipcMain.on("check_config_install", async (event, arg) => {
-    const config: InstallConfig = JSON.parse(arg)
     try {
-        if (fs.existsSync(path.join(os.homedir(), ".core_install_conf.json"))) {
+        if (!arg && fs.existsSync(path.join(os.homedir(), ".core_install_conf.json"))) {
             event.sender.send(
                 "check_config_install",
                 fs.readFileSync(path.join(os.homedir(), ".core_install_conf.json"), { encoding: "utf-8" }),
             )
+            return
         }
-        const insDir = getInstallDir(config.appLocation!)
-        if (fs.existsSync(path.join(insDir, ".core_install_conf.json"))) {
-            event.sender.send(
-                "check_config_install",
-                fs.readFileSync(path.join(insDir, ".core_install_conf.json"), { encoding: "utf-8" }),
-            )
+        if (arg) {
+            const config: InstallConfig = JSON.parse(arg)
+            const insDir = getInstallDir(config.appLocation!)
+            if (fs.existsSync(path.join(insDir, ".core_install_conf.json"))) {
+                event.sender.send(
+                    "check_config_install",
+                    fs.readFileSync(path.join(insDir, ".core_install_conf.json"), { encoding: "utf-8" }),
+                )
+            }
         }
     } catch (error) {}
 })
 
-ipcMain.on("check_database_connection", async (event, arg) => {
-    const config: InstallConfig = JSON.parse(arg)
+async function checkVersionSQLDatabase(config: InstallConfig) {
     try {
+        const conn = URL.parse(config.dbConnectString!)
         const db = new pg.Client({
-            connectionString: config.dbConnectString!,
+            host: conn.hostname!,
+            port: parseInt(conn.port!, 10),
             user: config.dbUsername!,
+            database: conn.pathname!.substr(1),
             password: config.dbPassword!,
         })
 
         await db.connect()
-        await db.query(`SELECT 1`)
+        const { rows } = await db.query(`SELECT version()`)
 
+        await new Promise((resolve, reject) => {
+            const [{ version }] = rows
+            version.replace(/^[A-z]+\s+(\d+)/, (match, pattern) => {
+                if (parseFloat(pattern) < 11) {
+                    reject(new Error("Need version PostgreSql 11+"))
+                }
+                return ""
+            })
+            resolve()
+        })
+    } catch (error) {
+        if (error.code != 42710) {
+            throw error
+        } else {
+            console.warn(error.message)
+        }
+    }
+}
+
+ipcMain.on("check_database_connection", async (event, arg) => {
+    const config: InstallConfig = JSON.parse(arg)
+    try {
+        await checkVersionSQLDatabase(config)
         event.sender.send("check_database_connection")
     } catch (error) {
         event.sender.send("check_database_connection", `Failed to connect postgres (${error.message})`)
@@ -329,194 +380,239 @@ function deleteFolderRecursive(pathDir: string) {
         fs.unlinkSync(pathDir)
     }
 }
+
+const install = async (config: InstallConfig, progress: (number, string) => void) => {
+    const conn = URL.parse(config.dbConnectString!)
+    const db = new pg.Client({
+        host: conn.hostname!,
+        port: parseInt(conn.port!, 10),
+        user: config.dbUsername!,
+        database: conn.pathname!.substr(1),
+        password: config.dbPassword!,
+    })
+
+    progress(1, "Connecting postgres...")
+    await db.connect()
+
+    if (!config.isUpdate) {
+        progress(3, "Creating roles...")
+
+        if (await checkSQLUser(db, "s_su")) {
+            await CreateSQLUser(db, "s_su", true, true)
+            await db.query(`ALTER USER s_su WITH PASSWORD 's_su';`)
+        }
+        if (await checkSQLUser(db, "s_mc")) {
+            await CreateSQLUser(db, "s_mc", true)
+            await db.query(`ALTER USER s_mc WITH PASSWORD 's_mc';`)
+            await db.query(`ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;`)
+        }
+        if (await checkSQLUser(db, "s_mp")) {
+            await CreateSQLUser(db, "s_mp")
+        }
+        if (await checkSQLUser(db, "s_ac")) {
+            await CreateSQLUser(db, "s_ac", true)
+            await db.query(`ALTER USER s_ac WITH PASSWORD 's_ac';`)
+            await db.query(`ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;`)
+        }
+        if (await checkSQLUser(db, "s_ap")) {
+            await CreateSQLUser(db, "s_ap")
+        }
+
+        if (await checkSQLDatabase(db, config.dbPrefixMeta + "meta")) {
+            progress(9, "Creating core database...")
+            await CreateSQLDatabase(db, config.dbPrefixMeta + "meta", "s_su")
+        }
+        if (await checkSQLDatabase(db, config.dbPrefixAuth + "auth")) {
+            progress(12, "Creating meta database...")
+            await CreateSQLDatabase(db, config.dbPrefixAuth + "auth", "s_su")
+        }
+    }
+
+    const tempDir = path.join(__dirname, fs.mkdtempSync("install_core_temp"))
+    progress(20, `Unzip...`)
+    unZipFile(tempDir)
+    const liquibaseParams = `--username=${config.isUpdate ? config.dbUsername : "s_su"} --password=${
+        config.isUpdate ? config.dbPassword : "s_su"
+    } --driver=org.postgresql.Driver update`
+    const dbmsPath = path.join(tempDir, "dbms")
+    const dbmsAuthPath = path.join(tempDir, "dbms_auth")
+    const liquibase = path.join(dbmsPath, "liquibase", "liquibase")
+
+    progress(30, `Migrating meta...`)
+    if (!isWin32) {
+        await exec(`chmod +x ${liquibase}`)
+    }
+
+    await exec(
+        `cd ${dbmsPath} && ${isWin32 ? "call " : ""}${liquibase}${isWin32 ? ".bat" : ""} --changeLogFile=${path.resolve(
+            dbmsPath,
+            "db.changelog.xml",
+        )} --url=jdbc:postgresql://${conn.hostname}:${conn.port}/${config.dbPrefixMeta}meta ${liquibaseParams}`,
+    )
+
+    progress(50, `Migrating auth meta...`)
+    await exec(
+        `cd ${dbmsAuthPath} && ${isWin32 ? "call " : ""}${liquibase}${
+            isWin32 ? ".bat" : ""
+        } --changeLogFile=${path.resolve(dbmsAuthPath, "db.changelog.meta.xml")} --url=jdbc:postgresql://${
+            conn.hostname
+        }:${conn.port}/${config.dbPrefixMeta}meta ${liquibaseParams}`,
+    )
+
+    progress(55, `Migrating auth...`)
+    await exec(
+        `cd ${dbmsAuthPath} && ${isWin32 ? "call " : ""}${liquibase}${
+            isWin32 ? ".bat" : ""
+        } --changeLogFile=${path.resolve(dbmsAuthPath, "db.changelog.auth.xml")} --url=jdbc:postgresql://${
+            conn.hostname
+        }:${conn.port}/${config.dbPrefixAuth}auth ${liquibaseParams}`,
+    )
+
+    installDir = getInstallDir(config.appLocation!)
+    wwwDir = getInstallDir(config.wwwLocation!)
+    if (config.isUpdate) {
+        progress(85, "Copy files...")
+        deleteFolderRecursive(path.join(installDir, "ungate"))
+        deleteFolderRecursive(wwwDir)
+        fs.mkdirSync(wwwDir, {
+            recursive: true,
+        })
+        fs.mkdirSync(path.join(installDir, "ungate"), {
+            recursive: true,
+        })
+        await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"))
+        await copyFiles(path.join(tempDir, "core"), wwwDir)
+        const packageJson: any = JSON.parse(
+            fs.readFileSync(path.join(installDir, "ungate", "package.json"), { encoding: "utf-8" }),
+        )
+        packageJson.nodemonConfig.env = {
+            ...packageJson.nodemonConfig.env,
+            LOGGER_CONF: path.join(installDir, "config", "logger.json"),
+            PROPERTY_DIR: path.join(installDir, "config"),
+            GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
+            NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
+        }
+        fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
+            encoding: "utf-8",
+        })
+    } else {
+        const dbMeta = new pg.Client({
+            host: conn.hostname!,
+            port: parseInt(conn.port!, 10),
+            user: config.dbUsername!,
+            database: `${config.dbPrefixMeta}meta`,
+            password: config.dbPassword!,
+        })
+        await dbMeta.connect()
+        await dbMeta.query(`UPDATE s_mt.t_sys_setting
+        SET cv_value='/core-module'
+        WHERE ck_id='g_sys_module_url';
+        UPDATE s_mt.t_sys_setting
+        SET cv_value='/gate-core'
+        WHERE ck_id='g_sys_gate_url';
+        `)
+        progress(75, "Creating catalogs...")
+        for (const dir of ["config", "logs", "tmp", "ungate", "core-module", "core-assets"]) {
+            fs.mkdirSync(path.join(installDir, dir), {
+                recursive: true,
+            })
+        }
+        fs.mkdirSync(wwwDir, {
+            recursive: true,
+        })
+        progress(80, "Creating configs...")
+
+        const configFiles = [
+            "logger.json",
+            "t_context.toml",
+            "t_events.toml",
+            "t_plugins.toml",
+            "t_providers.toml",
+            "t_query.toml",
+            "t_schedulers.toml",
+            "t_servers.toml",
+        ]
+
+        const configReplaces = [
+            ["#MAIN_LOGS_PATH#", path.join(installDir, "logs", "main.json")],
+            ["#ERROR_LOGS_PATH#", path.join(installDir, "logs", "error.log")],
+            ["#APP_DIR#", installDir],
+            ["#DB_HOST#", `${conn.hostname || "127.0.0.1"}`],
+            ["#DB_PORT#", `${conn.port || "5432"}`],
+            ["#SERVER_HOST#", os.hostname],
+            ["#SERVER_IP#", "127.0.0.1"],
+            ["#DB_PREFIX_META#", config.dbPrefixMeta],
+            ["#DB_PREFIX_AUTH#", config.dbPrefixAuth],
+        ]
+
+        for (const fileName of configFiles) {
+            let fileContent = fs.readFileSync(path.join(__dirname, "config", fileName), { encoding: "utf-8" })
+            configReplaces.map((replace: any) => {
+                fileContent = fileContent.replace(new RegExp(replace[0]!, "g"), replace[1]!)
+                if (isWin32) {
+                    fileContent = fileContent.replace(/\\/g, "\\\\")
+                }
+            })
+            fs.writeFileSync(path.join(installDir, "config", fileName), fileContent, { encoding: "utf-8" })
+        }
+
+        progress(85, "Copy files...")
+        await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"))
+        await copyFiles(path.join(tempDir, "core"), wwwDir)
+        progress(95, "Patching package...")
+
+        const packageJson: any = JSON.parse(
+            fs.readFileSync(path.join(installDir, "ungate", "package.json"), { encoding: "utf-8" }),
+        )
+
+        packageJson.nodemonConfig.env = {
+            ...packageJson.nodemonConfig.env,
+            LOGGER_CONF: path.join(installDir, "config", "logger.json"),
+            PROPERTY_DIR: path.join(installDir, "config"),
+            GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
+            NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
+        }
+
+        fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
+            encoding: "utf-8",
+        })
+        config.isUpdate = true
+        fs.writeFileSync(path.join(installDir, ".core_install_conf.json"), JSON.stringify(config, null, 2), {
+            encoding: "utf-8",
+        })
+        fs.writeFileSync(path.join(os.homedir(), ".core_install_conf.json"), JSON.stringify(config, null, 2), {
+            encoding: "utf-8",
+        })
+    }
+
+    deleteFolderRecursive(tempDir)
+    progress(98, "Finishing...")
+
+    setTimeout(() => progress(100, ""))
+}
 ipcMain.on("install", async (event, arg) => {
     const config: InstallConfig = JSON.parse(arg)
 
     try {
-        const conn = URL.parse(config.dbConnectString!)
-        const db = new pg.Client({
-            host: conn.host!,
-            port: parseInt(conn.port!, 10),
-            user: config.dbUsername!,
-            password: config.dbPassword!,
-        })
-
         const progress = ProcessSender(event)
-
-        progress(1, "Connecting postgres...")
-        await db.connect()
-
-        if (!config.isUpdate) {
-            progress(3, "Creating roles...")
-
-            if (await checkSQLUser(db, "s_su")) {
-                await CreateSQLUser(db, "s_su", true, true)
-                await db.query(`ALTER USER s_su WITH PASSWORD 's_su';`)
-            }
-            if (await checkSQLUser(db, "s_mc")) {
-                await CreateSQLUser(db, "s_mc", true)
-                await db.query(`ALTER USER s_mc WITH PASSWORD 's_mc';`)
-                await db.query(`ALTER ROLE s_mc SET search_path TO public, s_mt, pg_catalog;`)
-            }
-            if (await checkSQLUser(db, "s_mp")) {
-                await CreateSQLUser(db, "s_mp")
-            }
-            if (await checkSQLUser(db, "s_ac")) {
-                await CreateSQLUser(db, "s_ac", true)
-                await db.query(`ALTER USER s_ac WITH PASSWORD 's_ac';`)
-                await db.query(`ALTER ROLE s_ac SET search_path TO public, s_at, pg_catalog;`)
-            }
-            if (await checkSQLUser(db, "s_ap")) {
-                await CreateSQLUser(db, "s_ap")
-            }
-
-            if (await checkSQLDatabase(db, config.dbPrefix + "meta")) {
-                progress(9, "Creating core database...")
-                await CreateSQLDatabase(db, config.dbPrefix + "meta", "s_su")
-            }
-            if (await checkSQLDatabase(db, config.dbPrefix + "auth")) {
-                progress(12, "Creating meta database...")
-                await CreateSQLDatabase(db, config.dbPrefix + "auth", "s_su")
-            }
-        }
-
-        const tempDir = fs.mkdtempSync("install_core_temp")
-        progress(20, `Unzip...`)
-        unZipFile(tempDir)
-        const liquibaseParams = `--username=${config.isUpdate ? config.dbUsername : "s_su"} --password=${
-            config.isUpdate ? config.dbPassword : "s_su"
-        } --driver=org.postgresql.Driver update`
-        const dbmsPath = path.join(tempDir, "dbms")
-        const dbmsAuthPath = path.join(tempDir, "dbms_auth")
-        const liquibase = path.join(dbmsPath, "liquibase", "liquibase")
-
-        progress(30, `Migrating core...`)
-        await exec(
-            `cd ${dbmsPath} && ${isWin32 ? "call " : ""}${liquibase}${
-                isWin32 ? ".bat" : ""
-            } --changeLogFile=${path.resolve(dbmsPath, "db.changelog.xml")} --url=jdbc:postgresql://${conn.host}:${
-                conn.port
-            }/${config.dbPrefix}meta ${liquibaseParams}`,
-        )
-
-        progress(50, `Migrating meta...`)
-        await exec(
-            `cd ${dbmsAuthPath} && ${isWin32 ? "call " : ""}${liquibase}${
-                isWin32 ? ".bat" : ""
-            } --changeLogFile=${path.resolve(dbmsAuthPath, "db.changelog.meta.xml")} --url=jdbc:postgresql://${
-                conn.host
-            }:${conn.port}/${config.dbPrefix}meta ${liquibaseParams}`,
-        )
-
-        progress(55, `Migrating auth...`)
-        await exec(
-            `cd ${dbmsAuthPath} && ${isWin32 ? "call " : ""}${liquibase}${
-                isWin32 ? ".bat" : ""
-            } --changeLogFile=${path.resolve(dbmsAuthPath, "db.changelog.auth.xml")} --url=jdbc:postgresql://${
-                conn.host
-            }:${conn.port}/${config.dbPrefix}auth ${liquibaseParams}`,
-        )
-
-        installDir = getInstallDir(config.appLocation!)
-        wwwDir = getInstallDir(config.wwwLocation!)
-        if (config.isUpdate) {
-            progress(85, "Copy files...")
-            deleteFolderRecursive(path.join(installDir, "ungate"))
-            deleteFolderRecursive(wwwDir)
-            fs.mkdirSync(wwwDir, {
-                recursive: true,
-            })
-            fs.mkdirSync(path.join(installDir, "ungate"), {
-                recursive: true,
-            })
-            await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"))
-            await copyFiles(path.join(tempDir, "core"), wwwDir)
-        } else {
-            progress(75, "Creating catalogs...")
-            for (const dir of ["config", "logs", "tmp", "ungate"]) {
-                fs.mkdirSync(path.resolve(installDir, dir), {
-                    recursive: true,
-                })
-            }
-            fs.mkdirSync(wwwDir, {
-                recursive: true,
-            })
-            progress(80, "Creating configs...")
-
-            const configFiles = [
-                "logger.json",
-                "t_context.toml",
-                "t_events.toml",
-                "t_plugins.toml",
-                "t_providers.toml",
-                "t_query.toml",
-                "t_schedulers.toml",
-                "t_servers.toml",
-            ]
-
-            const configReplaces = [
-                ["#MAIN_LOGS_PATH#", path.join(installDir, "logs", "main.json")],
-                ["#ERROR_LOGS_PATH#", path.join(installDir, "logs", "error.log")],
-                ["#DB_HOST#", `${conn.host || "127.0.0.1"}`],
-                ["#DB_PORT#", `${conn.port || "5432"}`],
-                ["#SERVER_HOST#", os.hostname],
-                ["#SERVER_IP#", "127.0.0.1"],
-                ["#DB_PREFIX#", config.dbPrefix],
-            ]
-
-            for (const fileName of configFiles) {
-                let fileContent = fs.readFileSync(path.join(tempDir, "config", fileName), { encoding: "utf-8" })
-                configReplaces.map((replace: any) => {
-                    fileContent = fileContent.replace(new RegExp(replace[0]!, "g"), replace[1]!)
-                    if (isWin32) {
-                        fileContent = fileContent.replace(/\\/g, "\\\\")
-                    }
-                })
-                fs.writeFileSync(path.join(installDir, "config", fileName), fileContent, { encoding: "utf-8" })
-            }
-
-            progress(85, "Copy files...")
-            await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"))
-            await copyFiles(path.join(tempDir, "core"), wwwDir)
-            progress(95, "Patching package...")
-
-            const packageJson: any = JSON.parse(
-                fs.readFileSync(path.join(installDir, "ungate", "package.json"), { encoding: "utf-8" }),
-            )
-
-            packageJson.nodemonConfig.env = {
-                ...packageJson.nodemonConfig.env,
-                LOGGER_CONF: path.join(installDir, "config", "logger.json"),
-                PROPERTY_DIR: path.join(installDir, "config"),
-                GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
-                NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
-            }
-
-            fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
-                encoding: "utf-8",
-            })
-            config.isUpdate = true
-            fs.writeFileSync(path.join(installDir, ".core_install_conf.json"), JSON.stringify(config, null, 2), {
-                encoding: "utf-8",
-            })
-            fs.writeFileSync(path.join(os.homedir(), ".core_install_conf.json"), JSON.stringify(config, null, 2), {
-                encoding: "utf-8",
-            })
-        }
-
-        progress(98, "Finishing...")
-
-        setTimeout(() => progress(100, ""))
+        await install(config, progress)
     } catch (error) {
         console.error(error)
         event.sender.send("install_error", "FATAL ERROR: " + error.message)
     }
 })
 
-ipcMain.on("close", async (event, arg) => {
-    app.quit()
+ipcMain.on("real_path", async (event, arg) => {
+    const config: InstallConfig = JSON.parse(arg)
+    event.sender.send(
+        "real_path",
+        JSON.stringify({
+            wwwLocation: getInstallDir(config.wwwLocation!),
+            appLocation: getInstallDir(config.appLocation!),
+        }),
+    )
 })
 
-ipcMain.on("open_installation_dir", async (event, arg) => {
-    exec(`${isWin32 ? "start" : "open"} ${installDir}`)
+ipcMain.on("close", async () => {
+    app.quit()
 })
