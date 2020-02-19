@@ -1,0 +1,21 @@
+{
+    "compilerOptions": {
+        "esModuleInterop": true,
+        "experimentalDecorators": true,
+        "allowSyntheticDefaultImports": true,
+        "noImplicitReturns": true,
+        "strictNullChecks": true,
+        "skipLibCheck": true,
+        "allowJs": false,
+        "declaration": false,
+        "lib": ["es2019","dom"],
+        "target": "es2019",
+        "module": "commonjs",
+        "types": ["node"],
+        "jsx": "react",
+        "outDir": "./build",
+        "baseUrl": "./src"
+    },
+    "files": ["./src/index.ts"],
+    "exclude": ["node_modules", "./build"]
+}
