@@ -14,7 +14,9 @@ let versionApp = fs.readFileSync('../backend/VERSION').toString()
 delete packageJson.devDependencies
 delete packageJson.husky
 delete packageJson.scripts
-function cmdExec (command, options = {}) {
+function cmdExec (command, options = {
+  env: process.env
+}) {
   return new Promise((resolve, reject) => {
     childProcess.exec(command, options, (error, stdout, stderr) => {
       if (error) {
@@ -97,38 +99,47 @@ gulp.task('copy', async () => {
 
 gulp.task('create_os_package', async () => {
   await Promise.all([cmdExec('git submodule update --init -f --remote'), cmdExec('npm install', {
-    cwd: 'build'
+    cwd: 'build',
+    env: process.env
   })])
   versionApp = fs.readFileSync('../backend/VERSION').toString()
   cmdExec('git log -n 1 --pretty="format:%h от %ai"').then(({ stdout }) => {
     VERSION = `${versionApp.trim()} (${stdout.trim()})`
   }, () => {})
   await Promise.all([cmdExec('yarn backend:install', {
-    maxBuffer: 1073741824
+    maxBuffer: 1073741824,
+    env: process.env
   }), cmdExec('yarn frontend:install', {
-    maxBuffer: 1073741824
+    maxBuffer: 1073741824,
+    env: process.env
   })])
   const { stdout: commitFrontend } = await cmdExec('git log -1 --pretty=format:%h', {
-    cwd: path.join(__dirname, '..', 'frontend')
+    cwd: path.resolve(__dirname, '..', 'frontend'),
+    env: process.env
   })
   const { stdout: dateCommitFrontend } = await cmdExec('git log -n 1 --pretty=format:%ai', {
-    cwd: path.join(__dirname, '..', 'frontend')
+    cwd: path.resolve(__dirname, '..', 'frontend'),
+    env: process.env
   })
   const { stdout: minCommitBackend } = await cmdExec('git log -1 --pretty=format:%h', {
-    cwd: path.join(__dirname, '..', 'backend')
+    cwd: path.resolve(__dirname, '..', 'backend'),
+    env: process.env
   })
   const { stdout: fullCommitBackend } = await cmdExec('git log -1 --pretty=format:%H', {
-    cwd: path.join(__dirname, '..', 'backend')
+    cwd: path.resolve(__dirname, '..', 'backend'),
+    env: process.env
   })
   await Promise.all([cmdExec('yarn backend:build', {
     maxBuffer: 1073741824,
     env: {
+      ...process.env,
       BABEL_ENV: 'production',
       NODE_ENV: 'production'
     }
   }), cmdExec('yarn frontend:build', {
     maxBuffer: 1073741824,
     env: {
+      ...process.env,
       BABEL_ENV: 'production',
       NODE_ENV: 'production',
       REACT_APP_REQUEST: 'GATE',
@@ -144,9 +155,10 @@ gulp.task('create_os_package', async () => {
     }
   })])
   await cmdExec('yarn install --ignore-platform --ignore-arch && yarn add --ignore-platform --ignore-arch -W node-windows', {
-    cwd: path.join(__dirname, '..', 'backend', 'bin'),
+    cwd: path.resolve(__dirname, '..', 'backend', 'bin'),
     maxBuffer: 1073741824,
     env: {
+      ...process.env,
       BABEL_ENV: 'production',
       NODE_ENV: 'production'
     }
@@ -172,7 +184,8 @@ gulp.task('create_os_package', async () => {
   dbmsAuthZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms_auth'))
   dbmsAuthZip.writeZip(path.join(__dirname, 'build', `dbms_auth_${minCommitBackend}.zip`))
   await cmdExec(`node ${path.join(__dirname, 'node_modules', '.bin', 'electron-packager')} ./build install_app --overwrite --platform=${os.platform()} --app-version="${VERSION}" --arch=x64 --out=build_app`, {
-    maxBuffer: 1073741824
+    maxBuffer: 1073741824,
+    env: process.env
   })
 })
 
