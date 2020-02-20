@@ -104,8 +104,8 @@ gulp.task('copy', async () => {
 
 gulp.task('create_os_package', async () => {
   await Promise.all([cmdExec('git submodule update --init -f --remote'), cmdExec('npm install', {
-    env: process.env,
-    cwd: 'build'
+    cwd: path.resolve(__dirname, 'build'),
+    env: process.env
   })])
   versionApp = fs.readFileSync('../backend/VERSION').toString()
   cmdExec('git log -n 1 --pretty="format:%h от %ai"').then(({ stdout }) => {
@@ -115,27 +115,27 @@ gulp.task('create_os_package', async () => {
     encoding: 'utf-8'
   })
   await Promise.all([cmdExec('yarn backend:install', {
-    env: process.env,
-    maxBuffer: MAX_BUFFER
+    maxBuffer: MAX_BUFFER,
+    env: process.env
   }), cmdExec('yarn frontend:install', {
-    env: process.env,
-    maxBuffer: MAX_BUFFER
+    maxBuffer: MAX_BUFFER,
+    env: process.env
   })])
   const { stdout: commitFrontend } = await cmdExec('git log -1 --pretty=format:%h', {
-    env: process.env,
-    cwd: path.join(__dirname, '..', 'frontend')
+    cwd: path.resolve(__dirname, '..', 'frontend'),
+    env: process.env
   })
   const { stdout: dateCommitFrontend } = await cmdExec('git log -n 1 --pretty=format:%ai', {
-    env: process.env,
-    cwd: path.join(__dirname, '..', 'frontend')
+    cwd: path.resolve(__dirname, '..', 'frontend'),
+    env: process.env
   })
   const { stdout: minCommitBackend } = await cmdExec('git log -1 --pretty=format:%h', {
-    env: process.env,
-    cwd: path.join(__dirname, '..', 'backend')
+    cwd: path.resolve(__dirname, '..', 'backend'),
+    env: process.env
   })
   const { stdout: fullCommitBackend } = await cmdExec('git log -1 --pretty=format:%H', {
-    env: process.env,
-    cwd: path.join(__dirname, '..', 'backend')
+    cwd: path.resolve(__dirname, '..', 'backend'),
+    env: process.env
   })
   await Promise.all([cmdExec('yarn backend:build', {
     maxBuffer: MAX_BUFFER,
