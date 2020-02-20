@@ -6,7 +6,7 @@ module.exports = function () {
     mode: 'production',
     target: 'electron-renderer',
     entry: {
-      app: [path.join(__dirname, 'src', 'app', 'index.tsx')]
+      app: [path.join(__dirname, 'src', 'frontend', 'index.tsx')]
     },
     output: {
       filename: 'app.js',

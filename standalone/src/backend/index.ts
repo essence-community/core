@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from "electron"
+import { dialog, app, BrowserWindow, ipcMain } from "electron"
 import * as fs from "fs"
 import * as path from "path"
 import pg from "pg"
@@ -8,6 +8,7 @@ import CopyDir from "copy-dir"
 import AdmZip from "adm-zip"
 import * as childProcess from "child_process"
 import { InstallConfig } from "./Config.types"
+import { isEmpty, deleteFolderRecursive } from './util/base';
 
 let win: Electron.BrowserWindow | null
 const isWin32 = process.platform === "win32"
@@ -17,14 +18,15 @@ const NAME_DIR_DBMS_AUTH = "dbms_auth"
 
 const createWindow = () => {
     win = new BrowserWindow({
-        height: 600,
-        width: 600,
-        resizable: false,
+        height: 768,
+        width: 1024,
+        resizable: true,
         webPreferences: {
             nodeIntegration: true,
         },
     })
     win.loadFile(path.join(__dirname, "app/index.html"))
+    win.setMenuBarVisibility(false)
     //win.webContents.openDevTools()
     win.on("closed", () => {
         win = null
@@ -61,7 +63,10 @@ function ProcessSender(e: Electron.IpcMainEvent) {
 
 function exec(
     command: string,
-    options = {},
+    options = {
+        env: process.env,
+        cwd: __dirname
+    },
 ): Promise<{
     stdout: string | Buffer
     stderr: string | Buffer
@@ -241,44 +246,52 @@ async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
 }
 
 ipcMain.on("check", async (event, arg) => {
-    const config: InstallConfig = JSON.parse(arg)
+    const { config, step } = JSON.parse(arg)
 
     try {
-        const appPath = getInstallDir(config.appLocation!)
+        if (step === 1) {
+            const appPath = getInstallDir(config.appLocation!)
 
-        if (!fs.existsSync(appPath)) {
-            fs.mkdirSync(appPath, {
-                recursive: true,
-            })
-        }
+            if (!fs.existsSync(appPath)) {
+                fs.mkdirSync(appPath, {
+                    recursive: true,
+                })
+            }
 
-        if (!fs.existsSync(appPath)) {
-            throw new Error(`Failed to create install directory at path ${appPath}!`)
-        }
-        const wwwPath = getInstallDir(config.wwwLocation!)
+            if (!fs.existsSync(appPath)) {
+                throw new Error(`Failed to create install directory at path ${appPath}!`)
+            }
+            const wwwPath = getInstallDir(config.wwwLocation!)
 
-        if (!fs.existsSync(wwwPath)) {
-            fs.mkdirSync(wwwPath, {
-                recursive: true,
-            })
-        }
+            if (!fs.existsSync(wwwPath)) {
+                fs.mkdirSync(wwwPath, {
+                    recursive: true,
+                })
+            }
 
-        if (!fs.existsSync(wwwPath)) {
-            throw new Error(`Failed to create install directory at path ${wwwPath}!`)
-        }
+            if (!fs.existsSync(wwwPath)) {
+                throw new Error(`Failed to create install directory at path ${wwwPath}!`)
+            }
 
-        if (config.isUpdate) {
-            const dir = fs.readdirSync(appPath)
+            if (!config.isUpdate) {
+                const dirsBackend = fs.readdirSync(appPath)
+            
+                if (dirsBackend.length !== 0) {
+                    throw new Error(`${appPath} must be empty!`)
+                }
+                const dirsFrontend = fs.readdirSync(wwwPath)
 
-            if (dir.length !== 0) {
-                throw new Error("Install directory must be empty!")
+                if (dirsFrontend.length !== 0) {
+                    throw new Error(`${wwwPath} must be empty!`)
+                }
             }
         }
-
         checkZip()
         await checkNodeJsVersion()
         await checkJavaVersion()
-
+        if (step > 2 && config.isUpdate) {
+            await checkVersionUpdateSQLDatabase(config)
+        }
         event.sender.send("check")
     } catch (error) {
         event.sender.send("check", error.message)
@@ -306,6 +319,43 @@ ipcMain.on("check_config_install", async (event, arg) => {
         }
     } catch (error) {}
 })
+
+async function checkVersionUpdateSQLDatabase(config: InstallConfig) {
+    try {
+        const conn = URL.parse(config.dbConnectString!)
+        const db = new pg.Client({
+            host: conn.hostname!,
+            port: parseInt(conn.port!, 10),
+            user: config.dbUsername!,
+            database: `${config.dbPrefixMeta}meta`,
+            password: config.dbPassword!,
+        })
+
+        await db.connect()
+        const versionApp = fs.readFileSync(path.resolve(__dirname, 'VERSION')).toString()
+        const { rows } = await db.query(`SELECT cv_value from s_mt.t_sys_setting where ck_id = 'core_db_major_version'`)
+
+        await new Promise((resolve, reject) => {
+            const [{ cv_value: cvValue }] = rows
+            if (!isEmpty(cvValue)) {
+                const [MajorNew, MinorNew, PatchNew] = versionApp.split(".").map((val) => parseInt(val, 10));
+                const [MajorOld, MinorOld, PatchOld] = cvValue.split(".").map((val) => parseInt(val, 10));
+                if (MajorNew < MajorOld ||
+                    (MajorNew === MajorOld && MinorNew < MinorOld) ||
+                    (MajorNew === MajorOld && MinorNew === MinorOld && PatchNew < PatchOld)) {
+                    reject(new Error("Installed app is younger"));
+                }
+            }
+            resolve()
+        })
+    } catch (error) {
+        if (error.code != 42710) {
+            throw error
+        } else {
+            console.warn(error.message)
+        }
+    }
+}
 
 async function checkVersionSQLDatabase(config: InstallConfig) {
     try {
@@ -359,26 +409,6 @@ function copyFiles(from: string, to: string) {
             resolve()
         })
     })
-}
-
-function deleteFolderRecursive(pathDir: string) {
-    if (fs.existsSync(pathDir)) {
-        if (fs.lstatSync(pathDir).isDirectory()) {
-            fs.readdirSync(pathDir).forEach(file => {
-                const curPath = path.join(pathDir, file)
-                if (fs.lstatSync(curPath).isDirectory()) {
-                    // recurse
-                    deleteFolderRecursive(curPath)
-                } else {
-                    // delete file
-                    fs.unlinkSync(curPath)
-                }
-            })
-            fs.rmdirSync(pathDir)
-            return
-        }
-        fs.unlinkSync(pathDir)
-    }
 }
 
 const install = async (config: InstallConfig, progress: (number, string) => void) => {
@@ -472,7 +502,7 @@ const install = async (config: InstallConfig, progress: (number, string) => void
     wwwDir = getInstallDir(config.wwwLocation!)
     if (config.isUpdate) {
         progress(85, "Copy files...")
-        deleteFolderRecursive(path.join(installDir, "ungate"))
+        deleteFolderRecursive(path.resolve(installDir, "ungate"))
         deleteFolderRecursive(wwwDir)
         fs.mkdirSync(wwwDir, {
             recursive: true,
@@ -584,7 +614,18 @@ const install = async (config: InstallConfig, progress: (number, string) => void
             encoding: "utf-8",
         })
     }
-
+    if (os.platform() === "linux") {
+        await exec("chmod +x *", {
+            env: process.env,
+            cwd: path.resolve(installDir, "ungate", "node_modules", ".bin")
+        }
+        )
+        await exec("yarn remove -W node-windows", {
+            env: process.env,
+            cwd: path.resolve(installDir, "ungate")
+        }
+        )
+    }
     deleteFolderRecursive(tempDir)
     progress(98, "Finishing...")
 
@@ -609,6 +650,7 @@ ipcMain.on("real_path", async (event, arg) => {
         JSON.stringify({
             wwwLocation: getInstallDir(config.wwwLocation!),
             appLocation: getInstallDir(config.appLocation!),
+            ungateLocation: path.resolve(getInstallDir(config.appLocation!), "ungate")
         }),
     )
 })
@@ -616,3 +658,14 @@ ipcMain.on("real_path", async (event, arg) => {
 ipcMain.on("close", async () => {
     app.quit()
 })
+
+ipcMain.on('select-dirs', async (event, arg) => {
+    const {key, config} = JSON.parse(arg)
+    const result = await dialog.showOpenDialog(win!, {
+      properties: ['openDirectory']
+    })
+    if (result.filePaths.length) {   
+        config[key] = result.filePaths[0];
+        event.sender.send("check_config_install", JSON.stringify(config))
+    }
+  })

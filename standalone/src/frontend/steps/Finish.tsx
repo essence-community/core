@@ -5,7 +5,7 @@ import { ipcRenderer } from "electron"
 
 const info = (realWwwPath: string, appLocation: string, appPort: string) => {
     return `1. start:
-    cd ${appLocation} && yarn start 
+    cd ${appLocation} && yarn server 
 
 2. Add to nginx: 
     map $http_upgrade $connection_upgrade {
@@ -54,7 +54,7 @@ const Finish = (props: StepProps) => {
         ipcRenderer.on("real_path", (event, arg) => {
             const obj = JSON.parse(arg)
             setRealWwwPath(obj.wwwLocation)
-            setRealAppPath(obj.appLocation)
+            setRealAppPath(obj.ungateLocation)
         })
         ipcRenderer.send("real_path", JSON.stringify(props.config))
     }, [])
