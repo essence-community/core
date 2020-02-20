@@ -2,5 +2,5 @@
 
 To start Installer type 
 ```
-yarn && yarn start
+yarn && yarn build && yarn start
 ```
