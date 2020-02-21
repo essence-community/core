@@ -1,30 +1,34 @@
-import React, { useEffect, useState } from "react"
-import { StepProps } from ".."
-import { Button, Block, Text, Flexbox, TextField, notify, Divider, Modal } from "@flow-ui/core"
-import { ipcRenderer } from "electron"
+import React, {useEffect, useState} from "react";
+import {Button, Block, Text, Flexbox, TextField, notify, Divider, Modal} from "@flow-ui/core";
+import {ipcRenderer} from "electron";
+import {IStepProps} from "..";
 
-const LocationSetup = (props: StepProps) => {
+// eslint-disable-next-line max-lines-per-function
+const DatabaseSetup = (props: IStepProps) => {
     const [open, setOpen] = useState(false);
+
     useEffect(() => {
-        props.setTitle("Database")
-        props.setSubtitle("Setup PostgreSQL settings")
+        props.setTitle("Database");
+        props.setSubtitle("Setup PostgreSQL settings");
 
         ipcRenderer.on("check_database_connection", (event, arg) => {
             if (!arg) {
                 notify({
-                    title: "Connection",
                     message: "Success!",
                     timeout: 3000,
-                })
-                return
+                    title: "Connection",
+                });
+
+                return;
             }
             notify({
-                title: "Connection",
                 message: arg,
                 timeout: 5000,
-            })
-        })
-    }, [])
+                title: "Connection",
+            });
+        });
+    }, []);
+
     return (
         <Block>
             <Block p="1rem" pt="5rem">
@@ -37,7 +41,7 @@ const LocationSetup = (props: StepProps) => {
                         }}
                         label="Username"
                         value={props.config.dbUsername}
-                        onChange={e =>
+                        onChange={(e) =>
                             props.setConfig({
                                 dbUsername: e.target.value,
                             })
@@ -51,7 +55,7 @@ const LocationSetup = (props: StepProps) => {
                             margin: "10px 10px 10px 10px",
                         }}
                         value={props.config.dbPassword}
-                        onChange={e =>
+                        onChange={(e) =>
                             props.setConfig({
                                 dbPassword: e.target.value,
                             })
@@ -66,7 +70,7 @@ const LocationSetup = (props: StepProps) => {
                     style={{
                         margin: "10px 10px 10px 10px",
                     }}
-                    onChange={e =>
+                    onChange={(e) =>
                         props.setConfig({
                             dbConnectString: e.target.value,
                         })
@@ -80,7 +84,7 @@ const LocationSetup = (props: StepProps) => {
                     style={{
                         margin: "10px 10px 10px 10px",
                     }}
-                    onChange={e =>
+                    onChange={(e) =>
                         props.setConfig({
                             dbPrefixMeta: e.target.value,
                         })
@@ -94,24 +98,22 @@ const LocationSetup = (props: StepProps) => {
                     style={{
                         margin: "10px 10px 10px 10px",
                     }}
-                    onChange={e =>
+                    onChange={(e) =>
                         props.setConfig({
                             dbPrefixAuth: e.target.value,
                         })
                     }
                     mb="1rem"
                 />
-                <Text
-                    children={
-                        <Flexbox alignItems="center">
-                            Credential should be with admin access. Installaction process will create core users
-                        </Flexbox>
-                    }
-                />
+                <Text>
+                    <Flexbox alignItems="center">
+                        Credential should be with admin access. Installaction process will create core users
+                    </Flexbox>
+                </Text>
 
                 <Divider mt="1rem" mb="1rem" />
 
-                <Text color={c => c.light.hex()}>
+                <Text color={(c) => c.light.hex()}>
                     Installation will create "{props.config.dbPrefixMeta}meta" and "{props.config.dbPrefixAuth}auth"
                     databases
                 </Text>
@@ -119,33 +121,50 @@ const LocationSetup = (props: StepProps) => {
             <Flexbox justifyContent="flex-end">
                 <Button
                     onClick={() => {
-                        ipcRenderer.send("check_database_connection", JSON.stringify(props.config))
+                        ipcRenderer.send("check_database_connection", JSON.stringify(props.config));
                     }}
-                    children={<Flexbox>Check connection</Flexbox>}
-                />
+                >
+                    <Flexbox>Check connection</Flexbox>
+                </Button>
                 <Block flex={1} />
-                <Button decoration="text" mr="1rem" onClick={props.onPrev} children={<Flexbox>Back</Flexbox>} />
-                <Button onClick={() => {
-                    if (props.config.isUpdate) {
-                        setOpen(true)
-                    } else {
-                        props.onNext()
-                    }
-                }} children={<Flexbox>Next</Flexbox>} />
+                <Button decoration="text" mr="1rem" onClick={props.onPrev}>
+                    <Flexbox>Back</Flexbox>
+                </Button>
+                <Button
+                    onClick={() => {
+                        if (props.config.isUpdate) {
+                            setOpen(true);
+                        } else {
+                            props.onNext();
+                        }
+                    }}
+                >
+                    <Flexbox>Next</Flexbox>
+                </Button>
             </Flexbox>
-            <Modal
-                title="Caution!"
-                subtitle="Need backup old install" 
-                opened={open}>
-                <Flexbox><Button onClick={() => {
-                    props.onNext()
-                    setOpen(false)
-                    
-                }} children={<Flexbox>Yes</Flexbox>} />
-                    <Button onClick={() => { setOpen(false) }} children={<Flexbox>No</Flexbox>} decoration="text" mr="1rem" />
+            <Modal title="Caution!" subtitle="Need backup old install" opened={open}>
+                <Flexbox>
+                    <Button
+                        onClick={() => {
+                            props.onNext();
+                            setOpen(false);
+                        }}
+                    >
+                        <Flexbox>Ok</Flexbox>
+                    </Button>
+                    <Button
+                        onClick={() => {
+                            setOpen(false);
+                        }}
+                        decoration="text"
+                        mr="1rem"
+                    >
+                        <Flexbox>Cancel</Flexbox>
+                    </Button>
                 </Flexbox>
             </Modal>
         </Block>
-    )
-}
-export default LocationSetup
+    );
+};
+
+export default DatabaseSetup;
