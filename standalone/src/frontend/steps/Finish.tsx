@@ -1,7 +1,7 @@
-import React, { useEffect, useState } from "react"
-import { StepProps } from ".."
-import { Button, Block, Flexbox, Text } from "@flow-ui/core"
-import { ipcRenderer } from "electron"
+import React, {useEffect, useState} from "react";
+import {Button, Block, Flexbox, Text} from "@flow-ui/core";
+import {ipcRenderer} from "electron";
+import {IStepProps} from "..";
 
 const info = (realWwwPath: string, appLocation: string, appPort: string) => {
     return `1. start:
@@ -43,21 +43,24 @@ const info = (realWwwPath: string, appLocation: string, appPort: string) => {
         }
     }
 
-    `
-}
-const Finish = (props: StepProps) => {
-    const [realWwwPath, setRealWwwPath] = useState(props.config.wwwLocation!)
-    const [realAppPath, setRealAppPath] = useState(props.config.appLocation!)
+    `;
+};
+const Finish = (props: IStepProps) => {
+    const [realWwwPath, setRealWwwPath] = useState(props.config.wwwLocation!);
+    const [realAppPath, setRealAppPath] = useState(props.config.appLocation!);
+
     useEffect(() => {
-        props.setTitle("Complete")
-        props.setSubtitle("Installation complete successfully")
+        props.setTitle("Complete");
+        props.setSubtitle("Installation complete successfully");
         ipcRenderer.on("real_path", (event, arg) => {
-            const obj = JSON.parse(arg)
-            setRealWwwPath(obj.wwwLocation)
-            setRealAppPath(obj.ungateLocation)
-        })
-        ipcRenderer.send("real_path", JSON.stringify(props.config))
-    }, [])
+            const obj = JSON.parse(arg);
+
+            setRealWwwPath(obj.wwwLocation);
+            setRealAppPath(obj.ungateLocation);
+        });
+        ipcRenderer.send("real_path", JSON.stringify(props.config));
+    }, []);
+
     return (
         <Block>
             <Block p="1rem" pt="5rem">
@@ -70,12 +73,14 @@ const Finish = (props: StepProps) => {
             <Flexbox justifyContent="flex-end">
                 <Button
                     onClick={() => {
-                        ipcRenderer.send("close")
+                        ipcRenderer.send("close");
                     }}
-                    children="Close"
-                />
+                >
+                    Close
+                </Button>
             </Flexbox>
         </Block>
-    )
-}
-export default Finish
+    );
+};
+
+export default Finish;
