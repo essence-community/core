@@ -11,6 +11,8 @@ const packageJson = JSON.parse(fs.readFileSync('./package.json'))
 const childProcess = require('child_process')
 const AdmZip = require('adm-zip')
 let versionApp = fs.readFileSync('../backend/VERSION').toString()
+const MAX_BUFFER = 1073741824
+
 delete packageJson.devDependencies
 delete packageJson.husky
 delete packageJson.scripts
@@ -73,13 +75,13 @@ var tsProject = ts.createProject('./tsconfig.json', {
 })
 
 gulp.task('backend', () => {
-  return gulp.src(path.join('src', 'index.ts'))
+  return gulp.src(path.join('src', 'backend', '**', '*.ts'))
     .pipe(tsProject())
     .pipe(gulp.dest('build'))
 })
 
 gulp.task('frontend', () => {
-  return gulp.src(path.join('src', 'app', 'index.tsx'))
+  return gulp.src(path.join('src', 'frontend', 'index.tsx'))
     .pipe(webpackStream(webpackConfig(), webpack))
     .pipe(gulp.dest(path.join('build', 'app')))
 })
@@ -91,6 +93,9 @@ gulp.task('conf', async () => {
 })
 
 gulp.task('copy', async () => {
+  fs.writeFileSync(path.join(__dirname, 'build', 'VERSION'), versionApp.trim(), {
+    encoding: 'utf-8'
+  })
   await copyFiles('config', path.join('build', 'config'))
   if (fs.existsSync('assets')) {
     await copyFiles('assets', path.join('build', 'assets'))
@@ -99,18 +104,21 @@ gulp.task('copy', async () => {
 
 gulp.task('create_os_package', async () => {
   await Promise.all([cmdExec('git submodule update --init -f --remote'), cmdExec('npm install', {
-    cwd: 'build',
+    cwd: path.resolve(__dirname, 'build'),
     env: process.env
   })])
   versionApp = fs.readFileSync('../backend/VERSION').toString()
   cmdExec('git log -n 1 --pretty="format:%h от %ai"').then(({ stdout }) => {
     VERSION = `${versionApp.trim()} (${stdout.trim()})`
   }, () => {})
+  fs.writeFileSync(path.join(__dirname, 'build', 'VERSION'), versionApp.trim(), {
+    encoding: 'utf-8'
+  })
   await Promise.all([cmdExec('yarn backend:install', {
-    maxBuffer: 1073741824,
+    maxBuffer: MAX_BUFFER,
     env: process.env
   }), cmdExec('yarn frontend:install', {
-    maxBuffer: 1073741824,
+    maxBuffer: MAX_BUFFER,
     env: process.env
   })])
   const { stdout: commitFrontend } = await cmdExec('git log -1 --pretty=format:%h', {
@@ -130,14 +138,14 @@ gulp.task('create_os_package', async () => {
     env: process.env
   })
   await Promise.all([cmdExec('yarn backend:build', {
-    maxBuffer: 1073741824,
+    maxBuffer: MAX_BUFFER,
     env: {
       ...process.env,
       BABEL_ENV: 'production',
       NODE_ENV: 'production'
     }
   }), cmdExec('yarn frontend:build', {
-    maxBuffer: 1073741824,
+    maxBuffer: MAX_BUFFER,
     env: {
       ...process.env,
       BABEL_ENV: 'production',
@@ -155,8 +163,8 @@ gulp.task('create_os_package', async () => {
     }
   })])
   await cmdExec('yarn install --ignore-platform --ignore-arch && yarn add --ignore-platform --ignore-arch -W node-windows', {
-    cwd: path.resolve(__dirname, '..', 'backend', 'bin'),
-    maxBuffer: 1073741824,
+    cwd: path.join(__dirname, '..', 'backend', 'bin'),
+    maxBuffer: MAX_BUFFER,
     env: {
       ...process.env,
       BABEL_ENV: 'production',
@@ -183,10 +191,17 @@ gulp.task('create_os_package', async () => {
   const dbmsAuthZip = new AdmZip()
   dbmsAuthZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms_auth'))
   dbmsAuthZip.writeZip(path.join(__dirname, 'build', `dbms_auth_${minCommitBackend}.zip`))
-  await cmdExec(`node ${path.join(__dirname, 'node_modules', '.bin', 'electron-packager')} ./build install_app --overwrite --platform=${os.platform()} --app-version="${VERSION}" --arch=x64 --out=build_app`, {
-    maxBuffer: 1073741824,
-    env: process.env
+  const platform = os.platform()
+  await cmdExec(`node ${path.join(__dirname, 'node_modules', '.bin', 'electron-packager')} ./build install_app --overwrite --platform=${platform} --app-version="${VERSION}" --arch=x64 --out=build_app`, {
+    env: process.env,
+    maxBuffer: MAX_BUFFER
   })
+  if (platform === 'linux') {
+    await Promise.all(fs.readdirSync(path.resolve(__dirname, 'build_app')).map((file) => cmdExec(`tar -czf ${path.resolve(__dirname, 'build_app', `${file}.tar.gz`)} *`, {
+      env: process.env,
+      cwd: path.resolve(__dirname, 'build_app', file)
+    })))
+  }
 })
 
 gulp.task('clean', async () => {

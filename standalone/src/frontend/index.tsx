@@ -1,12 +1,12 @@
-import React, { useState } from "react"
+import React, { useState, useMemo } from "react"
 import ReactDOM from "react-dom"
-import { Viewport, Flexbox, Block, Text } from "@flow-ui/core"
+import { Viewport, notify, Block, Text } from "@flow-ui/core"
 import dark from "@flow-ui/core/misc/themes/dark"
 import GeneralSetup from "./steps/GeneralSetup"
 import DatabaseSetup from "./steps/DatabaseSetup"
 import Installing from "./steps/Installing"
 import Finish from "./steps/Finish"
-import { InstallConfig } from "../Config.types"
+import { InstallConfig } from "../backend/Config.types"
 import { ipcRenderer } from "electron"
 import { useEffect } from "react"
 
@@ -38,6 +38,10 @@ const App = () => {
     const [title, setTitle] = useState("Installation")
     const [subtitle, setSubtitle] = useState("")
     const Step = steps[step - 1]
+    const onNext = () => ipcRenderer.send("check", JSON.stringify({
+        step,
+        config: config
+    }))
     useEffect(() => {
         ipcRenderer.send("check_config_install")
         ipcRenderer.on("check_config_install", (event, arg) => {
@@ -47,6 +51,17 @@ const App = () => {
                     ...JSON.parse(arg),
                 })
             }
+        })
+        ipcRenderer.on("check", (event, arg) => {
+            if (!arg) {
+                setStep((prevState) => prevState + 1)
+                return
+            }
+            notify({
+                title: "Error",
+                message: arg,
+                timeout: 5000,
+            })
         })
     }, [])
 
@@ -74,9 +89,7 @@ const App = () => {
                     }}
                 >
                     <Step
-                        onNext={() => {
-                            setStep(step + 1)
-                        }}
+                        onNext={onNext}
                         onPrev={() => {
                             setStep(step - 1)
                         }}

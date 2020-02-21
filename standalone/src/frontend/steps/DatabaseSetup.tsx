@@ -1,9 +1,10 @@
-import React, { useEffect } from "react"
+import React, { useEffect, useState } from "react"
 import { StepProps } from ".."
-import { Button, Block, Text, Flexbox, TextField, notify, Divider } from "@flow-ui/core"
+import { Button, Block, Text, Flexbox, TextField, notify, Divider, Modal } from "@flow-ui/core"
 import { ipcRenderer } from "electron"
 
 const LocationSetup = (props: StepProps) => {
+    const [open, setOpen] = useState(false);
     useEffect(() => {
         props.setTitle("Database")
         props.setSubtitle("Setup PostgreSQL settings")
@@ -124,8 +125,26 @@ const LocationSetup = (props: StepProps) => {
                 />
                 <Block flex={1} />
                 <Button decoration="text" mr="1rem" onClick={props.onPrev} children={<Flexbox>Back</Flexbox>} />
-                <Button onClick={props.onNext} children={<Flexbox>Next</Flexbox>} />
+                <Button onClick={() => {
+                    if (props.config.isUpdate) {
+                        setOpen(true)
+                    } else {
+                        props.onNext()
+                    }
+                }} children={<Flexbox>Next</Flexbox>} />
             </Flexbox>
+            <Modal
+                title="Caution!"
+                subtitle="Need backup old install" 
+                opened={open}>
+                <Flexbox><Button onClick={() => {
+                    props.onNext()
+                    setOpen(false)
+                    
+                }} children={<Flexbox>Yes</Flexbox>} />
+                    <Button onClick={() => { setOpen(false) }} children={<Flexbox>No</Flexbox>} decoration="text" mr="1rem" />
+                </Flexbox>
+            </Modal>
         </Block>
     )
 }

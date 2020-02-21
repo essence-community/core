@@ -16,6 +16,6 @@
         "outDir": "./build",
         "baseUrl": "./src"
     },
-    "files": ["./src/index.ts"],
+    "include": ["src/backend/**/*.ts"],
     "exclude": ["node_modules", "./build"]
 }
