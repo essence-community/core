@@ -607,6 +607,8 @@ const install = async (config: InstallConfig, progress: (number, string) => void
             encoding: "utf-8",
         })
         config.isUpdate = true
+        config.appLocation = getInstallDir(config.appLocation!)
+        config.wwwLocation = getInstallDir(config.wwwLocation!)
         fs.writeFileSync(path.join(installDir, ".core_install_conf.json"), JSON.stringify(config, null, 2), {
             encoding: "utf-8",
         })
