@@ -1,15 +1,17 @@
-const gulp = require("gulp");
-const ts = require("gulp-typescript");
 const os = require("os");
-const webpack = require("webpack");
-const webpackStream = require("webpack-stream");
 const fs = require("fs");
 const path = require("path");
-const CopyDir = require("copy-dir");
-const webpackConfig = require("./webpack.config");
-const packageJson = JSON.parse(fs.readFileSync("./package.json"));
 const childProcess = require("child_process");
+const gulp = require("gulp");
+const ts = require("gulp-typescript");
+const webpack = require("webpack");
+const webpackStream = require("webpack-stream");
+const CopyDir = require("copy-dir");
 const AdmZip = require("adm-zip");
+const webpackConfig = require("./webpack.config");
+
+const packageJson = JSON.parse(fs.readFileSync("./package.json"));
+
 let versionApp = fs.readFileSync("../backend/VERSION").toString();
 const MAX_BUFFER = 1073741824;
 
@@ -26,6 +28,7 @@ function cmdExec(
         childProcess.exec(command, options, (error, stdout, stderr) => {
             if (error) {
                 error.message += `\n${stderr}`;
+
                 return reject(error);
             }
             resolve({stdout, stderr});
@@ -49,6 +52,7 @@ function deleteFolderRecursive(pathDir) {
         if (fs.lstatSync(pathDir).isDirectory()) {
             fs.readdirSync(pathDir).forEach((file) => {
                 const curPath = path.join(pathDir, file);
+
                 if (fs.lstatSync(curPath).isDirectory()) {
                     // recurse
                     deleteFolderRecursive(curPath);
@@ -58,6 +62,7 @@ function deleteFolderRecursive(pathDir) {
                 }
             });
             fs.rmdirSync(pathDir);
+
             return;
         }
         fs.unlinkSync(pathDir);
@@ -75,7 +80,7 @@ cmdExec('git log -n 1 --pretty="format:%h от %ai"').then(
 
 const isDev = process.env.NODE_ENV === "development";
 
-var tsProject = ts.createProject("./tsconfig.json", {
+const tsProject = ts.createProject("./tsconfig.json", {
     removeComments: !isDev,
     sourceMap: !isDev,
 });
@@ -154,6 +159,7 @@ gulp.task("create_os_package", async () => {
         cwd: path.resolve(__dirname, "..", "backend"),
         env: process.env,
     });
+
     await Promise.all([
         cmdExec("yarn backend:build", {
             maxBuffer: MAX_BUFFER,
@@ -197,6 +203,7 @@ gulp.task("create_os_package", async () => {
     let versionstr = fs
         .readFileSync(path.join(__dirname, "..", "backend", "dbms", "s_mt", "version.sql"), {encoding: "utf-8"})
         .toString();
+
     versionstr += `\n--changeset builder:update_${minCommitBackend} dbms:postgresql\n`;
     versionstr += `update s_mt.t_sys_setting set cv_value='${fullCommitBackend}' where ck_id='core_db_commit';\n`;
     versionstr += `update s_mt.t_sys_setting set cv_value='${versionApp}' where ck_id='core_db_major_version';\n`;
@@ -206,20 +213,25 @@ gulp.task("create_os_package", async () => {
         encoding: "utf-8",
     });
     const coreZip = new AdmZip();
+
     coreZip.addLocalFolder(
         path.join(__dirname, "..", "frontend", "packages", "@essence", "essence-constructor-website", "build"),
     );
     coreZip.writeZip(path.join(__dirname, "build", `core_${commitFrontend}.zip`));
     const ungateZip = new AdmZip();
+
     ungateZip.addLocalFolder(path.join(__dirname, "..", "backend", "bin"));
     ungateZip.writeZip(path.join(__dirname, "build", `ungate_${minCommitBackend}.zip`));
     const dbmsZip = new AdmZip();
+
     dbmsZip.addLocalFolder(path.join(__dirname, "..", "backend", "dbms"));
     dbmsZip.writeZip(path.join(__dirname, "build", `dbms_core_${minCommitBackend}.zip`));
     const dbmsAuthZip = new AdmZip();
+
     dbmsAuthZip.addLocalFolder(path.join(__dirname, "..", "backend", "dbms_auth"));
     dbmsAuthZip.writeZip(path.join(__dirname, "build", `dbms_auth_${minCommitBackend}.zip`));
     const platform = os.platform();
+
     await cmdExec(
         `node ${path.join(
             __dirname,
