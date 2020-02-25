@@ -2,19 +2,37 @@ import * as fs from "fs";
 import * as path from "path";
 import * as URL from "url";
 import * as os from "os";
-import * as childProcess from "child_process";
 import pg from "pg";
 import CopyDir from "copy-dir";
-import AdmZip from "adm-zip";
+import * as cliProgress from "cli-progress";
 import {dialog, app, BrowserWindow, ipcMain} from "electron";
+import {Command} from "commander";
 import {IInstallConfig} from "./Config.types";
-import {isEmpty, deleteFolderRecursive} from "./util/base";
+import {
+    isEmpty,
+    deleteFolderRecursive,
+    getInstallDir,
+    checkNodeJsVersion,
+    checkJavaVersion,
+    unZipFile,
+    exec,
+    ProcessSender,
+} from "./util/base";
+import {readConfig} from "./NoGui";
 
 let win: Electron.BrowserWindow | null;
 const isWin32 = process.platform === "win32";
 let installDir: string;
 let wwwDir: string;
 const NAME_DIR_DBMS_AUTH = "dbms_auth";
+
+const program = new Command();
+
+program.version("1.0.0").option("--nogui", "NoGui install");
+
+program.parse(process.argv);
+
+const isNotGui = program.nogui;
 
 const createWindow = () => {
     win = new BrowserWindow({
@@ -33,16 +51,9 @@ const createWindow = () => {
     });
 };
 
-app.on("ready", createWindow);
 app.on("window-all-closed", () => {
     if (process.platform !== "darwin") {
         app.quit();
-    }
-});
-
-app.on("activate", () => {
-    if (win === null) {
-        createWindow();
     }
 });
 
@@ -52,76 +63,6 @@ const zipFile = {
     dbms: "",
     ungate: "",
 };
-
-function ProcessSender(e: Electron.IpcMainEvent) {
-    return (percent: number, message: string) => {
-        e.sender.send(
-            "progress",
-            JSON.stringify({
-                message,
-                percent,
-            }),
-        );
-    };
-}
-
-function exec(
-    command: string,
-    options = {
-        cwd: __dirname,
-        env: process.env,
-    },
-): Promise<{
-    stdout: string | Buffer;
-    stderr: string | Buffer;
-}> {
-    return new Promise((resolve, reject) => {
-        childProcess.exec(command, options, (error: any, stdout, stderr) => {
-            if (error) {
-                error.message = `\n${stderr}`;
-
-                return reject(error);
-            }
-            resolve({stderr, stdout});
-        });
-    });
-}
-
-function checkJavaVersion() {
-    return new Promise((resolve, reject) => {
-        const spawn = childProcess.spawn("java", ["-version"]);
-
-        spawn.on("error", (error: Error) => reject(error));
-        spawn.stderr.on("data", (data: string) => {
-            data = data.toString().split("\n")[0];
-            const checkJavaVersion = new RegExp("version").test(data) ? data.split(" ")[2].replace(/"/g, "") : false;
-
-            if (checkJavaVersion != false) {
-                return resolve(checkJavaVersion);
-            } else {
-                reject(new Error("Java not installed"));
-            }
-        });
-    });
-}
-
-async function checkNodeJsVersion() {
-    const {stdout} = await exec("node -v");
-
-    return new Promise((resolve, reject) => {
-        stdout
-            .toString()
-            .trim()
-            .replace(/^v(\d+)\.[\d\.]+$/, (match, pattern) => {
-                if (parseInt(pattern, 10) < 12) {
-                    reject(new Error("Need version Node.js 12+"));
-                }
-
-                return "";
-            });
-        resolve();
-    });
-}
 
 function checkZip() {
     const files = fs.readdirSync(__dirname);
@@ -167,27 +108,6 @@ function checkZip() {
         throw new Error("Not found dbms_auth_*.zip");
     }
 }
-
-function unZipFile(tempDir: string) {
-    for (const dir of Object.keys(zipFile)) {
-        const fDir = path.join(tempDir, dir);
-
-        fs.mkdirSync(fDir, {
-            recursive: true,
-        });
-        const ziped = new AdmZip(zipFile[dir]);
-
-        ziped.extractAllTo(fDir, true);
-    }
-}
-
-const getInstallDir = (appPath: string) => {
-    if (appPath[0] === ".") {
-        appPath = path.resolve(__dirname, appPath);
-    }
-
-    return appPath;
-};
 
 async function CreateSQLUser(db: pg.Client, user: string, login = false, su = false) {
     try {
@@ -487,10 +407,10 @@ const install = async (config: IInstallConfig, progress: (number, string) => voi
         }
     }
 
-    const tempDir = path.join(__dirname, fs.mkdtempSync("install_core_temp"));
+    const tempDir = path.join(__dirname, "install_core_temp");
 
     progress(20, "Unzip...");
-    unZipFile(tempDir);
+    unZipFile(zipFile, tempDir);
     const liquibaseParams = `--username=${config.isUpdate ? config.dbUsername : "s_su"} --password=${
         config.isUpdate ? config.dbPassword : "s_su"
     } --driver=org.postgresql.Driver update`;
@@ -660,9 +580,7 @@ const install = async (config: IInstallConfig, progress: (number, string) => voi
         });
     }
     deleteFolderRecursive(tempDir);
-    progress(98, "Finishing...");
-
-    setTimeout(() => progress(100, ""));
+    progress(100, "Finishing...");
 };
 
 ipcMain.on("install", async (event, arg) => {
@@ -706,3 +624,45 @@ ipcMain.on("select-dirs", async (event, arg) => {
         event.sender.send("check_config_install", JSON.stringify(config));
     }
 });
+
+if (isNotGui) {
+    /* eslint-disable sort-keys */
+    const config: IInstallConfig = fs.existsSync(path.join(os.homedir(), ".core_install_conf.json"))
+        ? JSON.parse(fs.readFileSync(path.join(os.homedir(), ".core_install_conf.json"), {encoding: "utf-8"}))
+        : {
+              appLocation: getInstallDir("./gate_work"),
+              appPort: "8080",
+              dbUsername: "postgres",
+              dbPassword: "postgres",
+              dbConnectString: "postgres://localhost:5432/postgres",
+              dbPrefixMeta: "core_",
+              dbPrefixAuth: "core_",
+              isUpdate: false,
+              wwwLocation: getInstallDir("./www_public"),
+          };
+    /* eslint-enable sort-keys */
+    const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
+    bar.start(100, 0);
+    readConfig(config)
+        .then(async () => {
+            checkZip();
+        })
+        .then(() => {
+            return install(config, (num) => {
+                bar.update(num);
+            });
+        })
+        .catch((err) => console.error(err))
+        .finally(() => {
+            bar.stop();
+            app.exit();
+        });
+} else {
+    app.on("ready", createWindow);
+    app.on("activate", () => {
+        if (win === null) {
+            createWindow();
+        }
+    });
+}
