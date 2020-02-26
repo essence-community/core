@@ -64,7 +64,7 @@ export function ProcessSender(e: Electron.IpcMainEvent) {
 export function exec(
     command: string,
     options = {
-        cwd: __dirname,
+        cwd: path.resolve(__dirname, ".."),
         env: process.env,
     },
 ): Promise<{

@@ -113,7 +113,7 @@ async function CreateSQLUser(db: pg.Client, user: string, login = false, su = fa
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 }
@@ -129,7 +129,7 @@ async function checkSQLDatabase(db: pg.Client, name: string) {
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 
@@ -147,7 +147,7 @@ async function checkSQLUser(db: pg.Client, name: string) {
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 
@@ -171,7 +171,7 @@ async function CreateSQLDatabase(db: pg.Client, name: string, user: string) {
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 }
@@ -212,7 +212,7 @@ async function checkVersionUpdateSQLDatabase(config: IInstallConfig) {
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 }
@@ -247,7 +247,7 @@ async function checkVersionSQLDatabase(config: IInstallConfig) {
         if (error.code != 42710) {
             throw error;
         } else {
-            console.warn(error.message);
+            console.warn(error);
         }
     }
 }
@@ -562,7 +562,7 @@ const install = async (config: IInstallConfig, progress: (number, string) => voi
             encoding: "utf-8",
         });
     }
-    if (os.platform() === "linux") {
+    if (os.platform() !== "win32") {
         await exec("chmod +x *", {
             cwd: path.resolve(installDir, "ungate", "node_modules", ".bin"),
             env: process.env,
