@@ -6,7 +6,6 @@ import pg from "pg";
 import CopyDir from "copy-dir";
 import * as cliProgress from "cli-progress";
 import {dialog, app, BrowserWindow, ipcMain} from "electron";
-import {Command} from "commander";
 import {IInstallConfig} from "./Config.types";
 import {
     isEmpty,
@@ -26,13 +25,7 @@ let installDir: string;
 let wwwDir: string;
 const NAME_DIR_DBMS_AUTH = "dbms_auth";
 
-const program = new Command();
-
-program.version("1.0.0").option("--nogui", "NoGui install");
-
-program.parse(process.argv);
-
-const isNotGui = program.nogui;
+const isNotGui = process.argv.includes("--nogui");
 
 const createWindow = () => {
     win = new BrowserWindow({
