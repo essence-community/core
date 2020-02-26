@@ -20,8 +20,6 @@
         "frontend:build": "cd ../frontend && yarn build"
     },
     "devDependencies": {
-        "@types/cli-progress": "^3.4.2",
-        "@types/commander": "^2.12.2",
         "@babel/cli": "^7.6.4",
         "@babel/core": "^7.6.4",
         "@babel/preset-env": "^7.6.3",
@@ -30,6 +28,7 @@
         "@essence-community/eslint-config-react": "^2.1.0",
         "@flow-ui/core": "^0.1.32",
         "@types/adm-zip": "^0.4.32",
+        "@types/cli-progress": "^3.4.2",
         "@types/node": "^12.12.27",
         "@types/pg": "^7.11.2",
         "@types/react": "^16.9.9",
@@ -58,7 +57,6 @@
     "dependencies": {
         "adm-zip": "^0.4.14",
         "cli-progress": "^3.6.0",
-        "commander": "^4.1.1",
         "copy-dir": "^1.2.0",
         "pg": "^7.12.1"
     }
