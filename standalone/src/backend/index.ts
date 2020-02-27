@@ -5,7 +5,7 @@ import * as os from "os";
 import pg from "pg";
 import CopyDir from "copy-dir";
 import * as cliProgress from "cli-progress";
-import * as fixPath from "fix-path";
+import fixPath from "fix-path";
 import {dialog, app, BrowserWindow, ipcMain} from "electron";
 import {IInstallConfig} from "./Config.types";
 import {
