@@ -5,6 +5,7 @@ import * as os from "os";
 import pg from "pg";
 import CopyDir from "copy-dir";
 import * as cliProgress from "cli-progress";
+import * as fixPath from "fix-path";
 import {dialog, app, BrowserWindow, ipcMain} from "electron";
 import {IInstallConfig} from "./Config.types";
 import {
@@ -18,6 +19,9 @@ import {
     ProcessSender,
 } from "./util/base";
 import {readConfig} from "./NoGui";
+
+// Fixed env PATH
+fixPath();
 
 let win: Electron.BrowserWindow | null;
 const isWin32 = process.platform === "win32";
