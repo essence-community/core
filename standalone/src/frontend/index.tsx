@@ -1,10 +1,10 @@
-import React, {useState, useEffect} from "react";
+import React, { useState, useEffect } from "react";
 import ReactDOM from "react-dom";
-import {Viewport, notify, Block, Text} from "@flow-ui/core";
+import { Viewport, Header, Paragraph, notify, Flexbox, Block, Text } from "@flow-ui/core";
 import dark from "@flow-ui/core/misc/themes/dark";
-import {ipcRenderer} from "electron";
+import { ipcRenderer } from "electron";
 
-import {IInstallConfig} from "../backend/Config.types";
+import { IInstallConfig } from "../backend/Config.types";
 import GeneralSetup from "./steps/GeneralSetup";
 import DatabaseSetup from "./steps/DatabaseSetup";
 import Installing from "./steps/Installing";
@@ -76,44 +76,32 @@ const App = () => {
 
     return (
         <Viewport theme={dark}>
-            <div
-                style={{
-                    margin: "10px 10px 10px 10px",
-                }}
-            >
+            <Flexbox h="4rem" m="m" justifyContent="space-between" alignItems="center">
                 <Block>
-                    <h1>{title}</h1>
-                    <Text>{subtitle}</Text>
+                    <Header m={0}>{title}</Header>
+                    <Paragraph m={0} color={c => c.lightest}>{subtitle}</Paragraph>
                 </Block>
-                <Text color={(c) => c.light.hex()}>
+                <Block textColor={(c) => c.light}>
                     Step: {step}/{steps.length}
-                </Text>
-            </div>
-            <div>
-                <Block
-                    flex={1}
-                    mt="3rem"
-                    style={{
-                        margin: "10px 10px 10px 10px",
-                    }}
-                >
-                    <Step
-                        onNext={onNext}
-                        onPrev={() => {
-                            setStep(step - 1);
-                        }}
-                        setTitle={setTitle}
-                        setSubtitle={setSubtitle}
-                        config={config}
-                        setConfig={(cfg) =>
-                            setConfig({
-                                ...config,
-                                ...cfg,
-                            })
-                        }
-                    />
                 </Block>
-            </div>
+            </Flexbox>
+            <Flexbox column px="1rem" h="calc(100vh - 6rem)" css={{ overflow: 'hidden' }}>
+                <Step
+                    onNext={onNext}
+                    onPrev={() => {
+                        setStep(step - 1);
+                    }}
+                    setTitle={setTitle}
+                    setSubtitle={setSubtitle}
+                    config={config}
+                    setConfig={(cfg) =>
+                        setConfig({
+                            ...config,
+                            ...cfg,
+                        })
+                    }
+                />
+            </Flexbox>
         </Viewport>
     );
 };

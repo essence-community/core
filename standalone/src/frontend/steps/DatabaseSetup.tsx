@@ -1,11 +1,13 @@
-import React, {useEffect, useState} from "react";
-import {Button, Block, Text, Flexbox, TextField, notify, Divider, Modal} from "@flow-ui/core";
-import {ipcRenderer} from "electron";
-import {IStepProps} from "..";
+import { Block, Button, Flexbox, Grid, Modal, notify, Text, TextField } from "@flow-ui/core";
+import { AlertTriangle, ArrowIosBack, ArrowIosForward, Globe2, Info } from "@flow-ui/core/icons";
+import { ipcRenderer } from "electron";
+import React, { Fragment, useEffect, useState } from "react";
+import { IStepProps } from "..";
 
 // eslint-disable-next-line max-lines-per-function
 const DatabaseSetup = (props: IStepProps) => {
     const [open, setOpen] = useState(false);
+    const { config, setConfig } = props
 
     useEffect(() => {
         props.setTitle("Database");
@@ -30,118 +32,118 @@ const DatabaseSetup = (props: IStepProps) => {
     }, []);
 
     return (
-        <Block>
-            <Block p="1rem" pt="5rem">
-                <Flexbox>
-                    <TextField
-                        flex={1}
-                        mr="1rem"
-                        style={{
-                            margin: "10px 10px 10px 10px",
-                        }}
-                        label="Username"
-                        value={props.config.dbUsername}
-                        onChange={(e) =>
-                            props.setConfig({
-                                dbUsername: e.target.value,
-                            })
-                        }
-                        mb="1rem"
-                    />
-                    <TextField
-                        flex={1}
-                        label="Password"
-                        style={{
-                            margin: "10px 10px 10px 10px",
-                        }}
-                        value={props.config.dbPassword}
-                        onChange={(e) =>
-                            props.setConfig({
-                                dbPassword: e.target.value,
-                            })
-                        }
-                        mb="1rem"
-                    />
-                </Flexbox>
+        <Fragment>
+            <Flexbox 
+                p="m"
+                mb="m"
+                backgroundColor={c => c.warning.alpha(0.2)}
+                textColor={c => c.warning}
+                borderRadius=".5rem"
+                alignItems="center"
+                children={(
+                    <Fragment>
+                        <AlertTriangle pr={"0.5rem"} />
+                        <Text flex={1} weight={500}>Credential should be with admin access. Installaction process will create core users</Text>
+                    </Fragment>
+                )}
+            />
+            <Grid columnGap="0.5rem" rowGap="2rem" templateColumns="1fr 1fr" alignItems="start">
                 <TextField
-                    flex={1}
-                    label="Connection string"
-                    value={props.config.dbConnectString}
-                    style={{
-                        margin: "10px 10px 10px 10px",
-                    }}
+                    label="Username"
+                    value={config.dbUsername}
                     onChange={(e) =>
-                        props.setConfig({
+                        setConfig({
+                            dbUsername: e.target.value,
+                        })
+                    }
+                />
+                <TextField
+                    label="Password"
+                    value={config.dbPassword}
+                    onChange={(e) =>
+                        setConfig({
+                            dbPassword: e.target.value,
+                        })
+                    }
+                />
+                <TextField
+                    label="Connection string"
+                    value={config.dbConnectString}
+                    onChange={(e) =>
+                        setConfig({
                             dbConnectString: e.target.value,
                         })
                     }
-                    mb="1rem"
                 />
                 <TextField
-                    flex={1}
                     label="Database meta prefix"
-                    value={props.config.dbPrefixMeta}
-                    style={{
-                        margin: "10px 10px 10px 10px",
-                    }}
+                    value={config.dbPrefixMeta}
                     onChange={(e) =>
-                        props.setConfig({
+                        setConfig({
                             dbPrefixMeta: e.target.value,
                         })
                     }
-                    mb="1rem"
                 />
                 <TextField
-                    flex={1}
                     label="Database auth prefix"
-                    value={props.config.dbPrefixAuth}
-                    style={{
-                        margin: "10px 10px 10px 10px",
-                    }}
+                    value={config.dbPrefixAuth}
                     onChange={(e) =>
-                        props.setConfig({
+                        setConfig({
                             dbPrefixAuth: e.target.value,
                         })
                     }
-                    mb="1rem"
                 />
-                <Text>
-                    <Flexbox alignItems="center">
-                        Credential should be with admin access. Installaction process will create core users
-                    </Flexbox>
-                </Text>
-
-                <Divider mt="1rem" mb="1rem" />
-
-                <Text color={(c) => c.light.hex()}>
-                    Installation will create "{props.config.dbPrefixMeta}meta" and "{props.config.dbPrefixAuth}auth"
-                    databases
-                </Text>
-            </Block>
-            <Flexbox justifyContent="flex-end">
+            </Grid>
+            <Flexbox 
+                p="m"
+                mt="m"
+                backgroundColor={c => c.primary.alpha(0.2)} 
+                textColor={c => c.primary}
+                borderRadius=".5rem"
+                alignItems="center"
+                children={(
+                    <Fragment>
+                        <Info pr={"0.5rem"} />
+                        <Text flex={1} weight={500}>Installation will create "{config.dbPrefixMeta}meta" and "{config.dbPrefixAuth}auth" databases</Text>
+                    </Fragment>
+                )}
+            />
+            <Block flex={1} />
+            <Flexbox
+                p="m"
+                mx="-1rem"
+                backgroundColor={c => c.surface}
+                justifyContent="flex-end"
+            >
                 <Button
+                    color={c => c.secondary}
+                    children="Check connection"
+                    rightChild={<Globe2 />}
                     onClick={() => {
-                        ipcRenderer.send("check_database_connection", JSON.stringify(props.config));
+                        ipcRenderer.send("check_database_connection", JSON.stringify(config));
                     }}
-                >
-                    <Flexbox>Check connection</Flexbox>
-                </Button>
+                />
                 <Block flex={1} />
-                <Button decoration="text" mr="1rem" onClick={props.onPrev}>
-                    <Flexbox>Back</Flexbox>
-                </Button>
                 <Button
+                    children="Back"
+                    leftChild={<ArrowIosBack />}
+                    mr="s"
+                    decoration="text"
+                    onClick={props.onPrev}
+                />
+                <Button
+                    children="Continue"
+                    rightChild={<ArrowIosForward />}
                     onClick={() => {
-                        if (props.config.isUpdate) {
+                        if (config.isUpdate) {
                             setOpen(true);
                         } else {
                             props.onNext();
                         }
                     }}
-                >
-                    <Flexbox>Next</Flexbox>
-                </Button>
+                />
             </Flexbox>
+
             <Modal title="Caution!" subtitle="Need backup old install" opened={open}>
                 <Flexbox>
                     <Button
@@ -163,7 +165,7 @@ const DatabaseSetup = (props: IStepProps) => {
                     </Button>
                 </Flexbox>
             </Modal>
-        </Block>
+        </Fragment>
     );
 };
 

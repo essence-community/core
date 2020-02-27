@@ -1,7 +1,8 @@
-import {Block, Button, Text, Flexbox, Meter, Divider} from "@flow-ui/core";
-import React, {useEffect, useState} from "react";
-import {ipcRenderer} from "electron";
-import {IStepProps} from "..";
+import { Block, Button, Flexbox, Meter, Text } from "@flow-ui/core";
+import { Refresh } from "@flow-ui/core/icons";
+import { ipcRenderer } from "electron";
+import React, { Fragment, useEffect, useState } from "react";
+import { IStepProps } from "..";
 
 const Installing = (props: IStepProps) => {
     const [message, setMessage] = useState("Installing...");
@@ -30,47 +31,61 @@ const Installing = (props: IStepProps) => {
     }, []);
 
     return (
-        <Block>
-            <Block p="1rem" pt="5rem">
-                <Flexbox column>
-                    <Block flex={1}>
-                        <Meter shape="square" size="xl" decoration="outline" animated percent={progress} />
-                    </Block>
-                    <Text color={(c) => c.light.hex()}>{message}</Text>
-                    {error && (
-                        <Block>
-                            <Divider />
-                            <Text>{error}</Text>
-                        </Block>
-                    )}
+        <Fragment>
+
+            <Block flex={1}>
+                <Flexbox justifyContent="space-between" mb="s">
+                    <Text weight={500} color={c => error ? c.error : c.onSurface}>{message}</Text>
+                    <Text weight={500} color={c => error ? c.error : c.primary}>{progress}%</Text>
                 </Flexbox>
-            </Block>
-            <Flexbox justifyContent="flex-end">
-                {error !== "" && (
-                    <Flexbox flex={1}>
-                        <Button
-                            decoration="outline"
-                            onClick={() => {
-                                setError("");
-                                setMessage("Retrying...");
-                                setProgress(0);
-                                ipcRenderer.send("install", JSON.stringify(props.config));
-                            }}
-                        >
-                            Retry installation
-                        </Button>
-                    </Flexbox>
+                <Meter 
+                    loading={error ? false : true}
+                    color={c => error ? c.error : c.primary}
+                    decoration="outline" 
+                    size="xl" 
+                    value={progress}
+                />
+                {error && (
+                    <Block mt="m" p="s m" borderRadius="0.5rem" backgroundColor={c => c.error.alpha(0.2)}>
+                        <Text size="s">{error}</Text>
+                    </Block>
                 )}
-                <Button
-                    disabled={error === ""}
-                    onClick={() => {
-                        ipcRenderer.send("close");
-                    }}
-                >
-                    Close
-                </Button>
-            </Flexbox>
-        </Block>
+            </Block>
+            <Block flex={1} />
+            <Flexbox
+                p="m"
+                mx="-1rem"
+                backgroundColor={c => c.surface}
+                justifyContent="flex-end"
+                children={(
+                    <Fragment>
+                        {error !== "" && (
+                            <Button
+                                children="Retry installation"
+                                rightChild={<Refresh />}
+                                mr="0.5rem"
+                                color={c => c.secondary}
+                                onClick={() => {
+                                    setError("");
+                                    setMessage("Retrying...");
+                                    setProgress(0);
+                                    ipcRenderer.send("install", JSON.stringify(props.config));
+                                }}
+                            />
+                        )}
+                        <Block flex={1} />
+                        <Button
+                            children="Close"
+                            decoration="outline"
+                            disabled={error === ""}
+                            onClick={() => {
+                                ipcRenderer.send("close");
+                            }}
+                        />
+                    </Fragment>
+                )}
+            />
+        </Fragment>
     );
 };
 

@@ -1,172 +1,150 @@
-import React, {useEffect} from "react";
-import {Button, Block, Text, Flexbox, TextField, Checkbox} from "@flow-ui/core";
-import {Upload} from "@flow-ui/core/icons";
-import {ipcRenderer} from "electron";
-import {IStepProps} from "..";
+import { Block, Button, Flexbox, Grid, Paragraph, Text, TextField } from "@flow-ui/core";
+import { ArrowIosForward, Folder } from "@flow-ui/core/icons";
+import { ipcRenderer } from "electron";
+import React, { Fragment, useEffect } from "react";
+import { IStepProps } from "..";
+
+const dependencies = ['Yarn', 'Java 8+', 'Node.js 12+', 'Nginx', 'PostgreSql 11+']
 
 // eslint-disable-next-line max-lines-per-function
 const GeneralSetup = (props: IStepProps) => {
+
     useEffect(() => {
         props.setTitle("General setup");
         props.setSubtitle("Setup general properties");
     }, []);
 
-    return (
-        <Block>
-            <Block>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    <h2>Need install dependency:</h2>
-                </Text>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    - Java 8+
-                </Text>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    - Node.js 12+
-                </Text>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    - Nginx
-                </Text>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    - Yarn
-                </Text>
-                <Text
-                    style={{
-                        display: "block",
-                    }}
-                >
-                    - PostgreSql 11+
-                </Text>
-            </Block>
-            <Block p="1rem" pt="5rem">
-                <Flexbox flex={1}>
-                    <TextField
-                        flex={1}
-                        label="BackEnd location"
-                        style={{
-                            margin: "10px 10px 10px 10px",
-                        }}
-                        value={props.config.appLocation}
-                        onChange={(e) => {
-                            ipcRenderer.send("check_config_install", JSON.stringify(props.config));
-                            props.setConfig({
-                                appLocation: e.target.value,
-                            });
-                        }}
-                        hint="Provide path where you would like to install gate"
-                        mb="2rem"
-                        rightChild={
-                            <Upload
-                                onClick={() => {
-                                    ipcRenderer.send(
-                                        "select-dirs",
-                                        JSON.stringify({
-                                            config: props.config,
-                                            key: "appLocation",
-                                        }),
-                                    );
-                                }}
-                            ></Upload>
-                        }
-                    />
-                    <TextField
-                        flex={1}
-                        label="FrontEnd location"
-                        style={{
-                            margin: "10px 10px 10px 10px",
-                        }}
-                        value={props.config.wwwLocation}
-                        onChange={(e) => {
-                            props.setConfig({
-                                wwwLocation: e.target.value,
-                            });
-                        }}
-                        hint="Provide path where you would like to install www"
-                        mb="2rem"
-                        rightChild={
-                            <Upload
-                                onClick={() => {
-                                    ipcRenderer.send(
-                                        "select-dirs",
-                                        JSON.stringify({
-                                            config: props.config,
-                                            key: "wwwLocation",
-                                        }),
-                                    );
-                                }}
-                            ></Upload>
-                        }
-                    />
-                </Flexbox>
-                <Flexbox>
-                    <Flexbox
-                        flex={1}
-                        style={{
-                            margin: "10px 10px 10px 10px",
-                        }}
-                    >
-                        <Checkbox
-                            flex={1}
-                            label="Update"
-                            checked={props.config.isUpdate}
-                            onChange={() => {
-                                const isUpdate = !props.config.isUpdate;
+    const { config, setConfig } = props
+    const { isUpdate } = config
 
-                                props.setConfig({
-                                    isUpdate,
-                                });
-                            }}
-                            mb="1rem"
+    const BrowseButton = (props: { value: 'appLocation' | 'wwwLocation' }) => (
+        <Button
+            size="xs"
+            mr="-0.25rem"
+            children="Browse"
+            decoration="outline"
+            rightChild={<Folder />}
+            onClick={() => {
+                ipcRenderer.send(
+                    "select-dirs",
+                    JSON.stringify({
+                        config,
+                        key: "wwwLocation",
+                    }),
+                );
+            }}
+        />
+    )
+
+    return (
+        <Fragment>
+            <Block backgroundColor={c => c.warning.alpha(0.2)} borderRadius=".5rem" p="m">
+                <Paragraph mb="s" weight={500}>Need install dependency</Paragraph>
+                {
+                    dependencies.map(dependency => (
+                        <Text
+                            size="s"
+                            m="xs"
+                            p="xs"
+                            borderRadius=".25rem"
+                            backgroundColor={c => c.warning.alpha(0.2)}
+                            textColor={c => c.warning}
+                            children={dependency}
                         />
-                    </Flexbox>
-                    {props.config.isUpdate ? null : (
-                        <TextField
-                            flex={1}
-                            label="App port"
-                            style={{
-                                margin: "10px 10px 10px 10px",
-                            }}
-                            value={props.config.appPort}
-                            onChange={(e) => {
-                                props.setConfig({
-                                    appPort: e.target.value,
-                                });
-                            }}
-                            hint="Port app gate"
-                            mb="2rem"
-                        />
-                    )}
+                    ))
+                }
+            </Block>
+            <Block my="m">
+                <Paragraph m={0} color={c => c.hard}>Installation mode</Paragraph>
+                <Flexbox>
+                    <Button 
+                        size="xs"
+                        decoration={!isUpdate ? 'filled' : 'outline'}
+                        styles={{
+                            container: () => [{ borderTopRightRadius:0, borderBottomRightRadius:0 }]
+                        }}
+                        children="Install"
+                        onClick={() => {
+                            setConfig({ isUpdate: false })
+                        }}
+                    />
+                    <Button
+                        size="xs"
+                        decoration={isUpdate ? 'filled' : 'outline'}
+                        styles={{
+                            container: () => [{ borderTopLeftRadius:0, borderBottomLeftRadius:0 }]
+                        }}
+                        children="Update"
+                        onClick={() => {
+                            setConfig({ isUpdate: true });
+                        }}
+                    />
                 </Flexbox>
             </Block>
-            <Flexbox justifyContent="flex-end">
-                <Button
-                    onClick={() => {
-                        ipcRenderer.send("check", JSON.stringify(props.config));
+            <Grid columnGap="0.5rem" rowGap="2rem" templateColumns="1fr 1fr" alignItems="start">
+                <TextField
+                    label="Services location"
+                    value={config.appLocation}
+                    onChange={(e) => {
+                        ipcRenderer.send("check_config_install", JSON.stringify(config));
+                        setConfig({
+                            appLocation: e.target.value,
+                        });
                     }}
-                >
-                    <Flexbox>Next</Flexbox>
-                </Button>
-            </Flexbox>
-        </Block>
+                    hint={
+                        <Text size="s" color={c => c.lightest}>Provide path where you would like to install services</Text>
+                    }
+                    rightChild={
+                        <BrowseButton value="appLocation" />
+                    }
+                />
+                <TextField
+                    label="Web app location"
+                    value={config.wwwLocation}
+                    onChange={(e) => {
+                        setConfig({
+                            wwwLocation: e.target.value,
+                        });
+                    }}
+                    hint={
+                        <Text size="s" color={c => c.lightest}>Provide path where you would like to install www</Text>
+                    }
+                    rightChild={
+                        <BrowseButton value="wwwLocation" /> 
+                    }
+                />
+                {isUpdate ? null : (
+                    <TextField
+                        label="Application port"
+                        value={config.appPort}
+                        onChange={(e) => {
+                            setConfig({
+                                appPort: e.target.value,
+                            });
+                        }}
+                        hint={
+                            <Text size="s" color={c => c.lightest}>This port will be listening by gate</Text>
+                        }
+                    />
+                )}
+            </Grid>
+            <Block flex={1} />
+            <Flexbox
+                p="m"
+                mx="-1rem"
+                backgroundColor={c => c.surface}
+                justifyContent="flex-end"
+                children={(
+                    <Button
+                        children="Continue"
+                        rightChild={<ArrowIosForward />}
+                        onClick={() => {
+                            ipcRenderer.send("check", JSON.stringify(config));
+                        }}
+                    />
+                )}
+            />
+        </Fragment>
     );
 };
 

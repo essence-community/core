@@ -1,7 +1,8 @@
-import React, {useEffect, useState} from "react";
-import {Button, Block, Flexbox, Text} from "@flow-ui/core";
+import React, {useEffect, useState, Fragment} from "react";
+import {Button, Block, Flexbox, Text, ScrollView} from "@flow-ui/core";
 import {ipcRenderer} from "electron";
 import {IStepProps} from "..";
+import { CloudUpload } from "@flow-ui/core/icons";
 
 const info = (realWwwPath: string, appLocation: string, ungateLocation: string, appPort: string) => {
     return `1. start:
@@ -64,24 +65,31 @@ const Finish = (props: IStepProps) => {
     }, []);
 
     return (
-        <Block>
-            <Block p="1rem" pt="5rem">
-                <Block>
-                    <Text>
+        <Fragment>
+            <Block decoration="surface">
+                <ScrollView h="calc(100vh - 12rem)">
+                    <Block p="s m">
                         <pre>{info(realWwwPath, realAppPath, realUngatePath, props.config.appPort!)}</pre>
-                    </Text>
-                </Block>
+                    </Block>
+                </ScrollView>
             </Block>
-            <Flexbox justifyContent="flex-end">
-                <Button
-                    onClick={() => {
-                        ipcRenderer.send("close");
-                    }}
-                >
-                    Close
-                </Button>
-            </Flexbox>
-        </Block>
+            <Block flex={1}/>
+            <Flexbox
+                p="m"
+                mx="-1rem"
+                backgroundColor={c => c.surface}
+                justifyContent="flex-end"
+                children={(
+                    <Button
+                        children="Close"
+                        decoration="outline"
+                        onClick={() => {
+                            ipcRenderer.send("close");
+                        }}
+                    />
+                )}
+            />
+        </Fragment>
     );
 };
 
