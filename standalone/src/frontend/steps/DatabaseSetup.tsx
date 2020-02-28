@@ -1,4 +1,4 @@
-import { Block, Button, Flexbox, Grid, Modal, notify, Text, TextField } from "@flow-ui/core";
+import { Block, Button, Flexbox, Grid, dialog, notify, Text, TextField, Header, Paragraph } from "@flow-ui/core";
 import { AlertTriangle, ArrowIosBack, ArrowIosForward, Globe2, Info } from "@flow-ui/core/icons";
 import { ipcRenderer } from "electron";
 import React, { Fragment, useEffect, useState } from "react";
@@ -6,7 +6,6 @@ import { IStepProps } from "..";
 
 // eslint-disable-next-line max-lines-per-function
 const DatabaseSetup = (props: IStepProps) => {
-    const [open, setOpen] = useState(false);
     const { config, setConfig } = props
 
     useEffect(() => {
@@ -136,35 +135,47 @@ const DatabaseSetup = (props: IStepProps) => {
                     rightChild={<ArrowIosForward />}
                     onClick={() => {
                         if (config.isUpdate) {
-                            setOpen(true);
+                            dialog({
+                                hideHeader: true,
+                                customContent: (close) => (
+                                    <Flexbox column alignItems="center">
+                                        <AlertTriangle
+                                            color={c => c.warning}
+                                            size="4rem"
+                                        />
+                                        <Header
+                                            m={0}
+                                            color={c => c.warning}
+                                            children="Update"
+                                        />
+                                        <Paragraph
+                                            color={c => c.hard}
+                                            children="Please make sure you've backup previos installation before continue!"
+                                        />
+                                        <Flexbox>
+                                            <Button
+                                                mr="m"
+                                                color={c => c.secondary}
+                                                children="Continue"
+                                                onClick={() => {
+                                                    close()
+                                                    props.onNext()
+                                                }}
+                                            />
+                                            <Button
+                                                children="Cancel"
+                                                onClick={close}
+                                            />
+                                        </Flexbox>
+                                    </Flexbox>
+                                )
+                            })
                         } else {
                             props.onNext();
                         }
                     }}
                 />
             </Flexbox>
-
-            <Modal title="Caution!" subtitle="Need backup old install" opened={open}>
-                <Flexbox>
-                    <Button
-                        onClick={() => {
-                            props.onNext();
-                            setOpen(false);
-                        }}
-                    >
-                        <Flexbox>Ok</Flexbox>
-                    </Button>
-                    <Button
-                        onClick={() => {
-                            setOpen(false);
-                        }}
-                        decoration="text"
-                        mr="1rem"
-                    >
-                        <Flexbox>Cancel</Flexbox>
-                    </Button>
-                </Flexbox>
-            </Modal>
         </Fragment>
     );
 };
