@@ -17,25 +17,48 @@ const questionReadline = (question: string): any => {
 
 // eslint-disable-next-line max-statements
 export const readConfig = async (config: IInstallConfig) => {
-    const backEndLocation = await questionReadline(`Choice install backend dir? (${config.appLocation}):`);
+    const mode = await questionReadline(
+        `Installation mode:\n\t1 - install\n\t2 - update\nmode(${config.isUpdate ? "2" : "1"}):`,
+    );
 
-    if (!isEmpty(backEndLocation)) {
-        config.appLocation = getInstallDir(backEndLocation);
+    if (!isEmpty(mode)) {
+        config.isUpdate = mode === "2";
+    }
+    const type = await questionReadline(
+        "Type mode:\n\t1 - install all\n\t2 - only Services\n\t3 - only Web app\nmode(1):",
+    );
+
+    switch (type) {
+        case "2":
+            config.isInstallApp = true;
+            config.isInstallWww = false;
+            break;
+        case "3":
+            config.isInstallApp = false;
+            config.isInstallWww = true;
+            break;
+        default:
+            config.isInstallApp = true;
+            config.isInstallWww = true;
+            break;
+    }
+    if (config.isInstallApp) {
+        const backEndLocation = await questionReadline(`Choice install services dir? (${config.appLocation}):`);
+
+        if (!isEmpty(backEndLocation)) {
+            config.appLocation = getInstallDir(backEndLocation);
+        }
     }
 
-    const frontEndEndLocation = await questionReadline(`Choice install frontend dir? (${config.wwwLocation}):`);
+    if (config.isInstallWww) {
+        const frontEndEndLocation = await questionReadline(`Choice install web app dir? (${config.wwwLocation}):`);
 
-    if (!isEmpty(frontEndEndLocation)) {
-        config.wwwLocation = getInstallDir(frontEndEndLocation);
+        if (!isEmpty(frontEndEndLocation)) {
+            config.wwwLocation = getInstallDir(frontEndEndLocation);
+        }
     }
 
-    const isUpdate = await questionReadline(`It is update? (${config.isUpdate ? "yes" : "no"}):`);
-
-    if (!isEmpty(isUpdate)) {
-        config.isUpdate = isUpdate.toLowerCase() === "yes" || isUpdate.toLowerCase()[0] === "y";
-    }
-
-    if (!config.isUpdate) {
+    if (!config.isUpdate && config.isInstallApp) {
         const appPort = await questionReadline(`App listing port? (${config.appPort}):`);
 
         if (!isEmpty(appPort) && /^\d+$/.test(appPort)) {

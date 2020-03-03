@@ -1,4 +1,5 @@
 export interface IInstallConfig {
+    isInstallApp?: boolean;
     appLocation?: string;
     appPort?: string;
     isUpdate?: boolean;
@@ -7,5 +8,6 @@ export interface IInstallConfig {
     dbPassword?: string;
     dbPrefixAuth?: string;
     dbPrefixMeta?: string;
+    isInstallWww?: boolean;
     wwwLocation?: string;
 }
