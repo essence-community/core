@@ -42,7 +42,9 @@ const createWindow = () => {
     });
     win.loadFile(path.join(__dirname, "app/index.html"));
     win.setMenuBarVisibility(false);
-    // win.webContents.openDevTools()
+    if (process.env.DEBUG_INSTALL === "true") {
+        win.webContents.openDevTools();
+    }
     win.on("closed", () => {
         win = null;
     });
@@ -449,30 +451,34 @@ const install = async (config: IInstallConfig, progress: (number, string) => voi
     wwwDir = getInstallDir(config.wwwLocation!);
     if (config.isUpdate) {
         progress(85, "Copy files...");
-        deleteFolderRecursive(path.resolve(installDir, "ungate"));
-        deleteFolderRecursive(wwwDir);
-        fs.mkdirSync(wwwDir, {
-            recursive: true,
-        });
-        fs.mkdirSync(path.join(installDir, "ungate"), {
-            recursive: true,
-        });
-        await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"));
-        await copyFiles(path.join(tempDir, "core"), wwwDir);
-        const packageJson: any = JSON.parse(
-            fs.readFileSync(path.join(installDir, "ungate", "package.json"), {encoding: "utf-8"}),
-        );
+        if (config.isInstallApp) {
+            deleteFolderRecursive(path.resolve(installDir, "ungate"));
+            fs.mkdirSync(path.join(installDir, "ungate"), {
+                recursive: true,
+            });
+            await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"));
+            const packageJson: any = JSON.parse(
+                fs.readFileSync(path.join(installDir, "ungate", "package.json"), {encoding: "utf-8"}),
+            );
 
-        packageJson.nodemonConfig.env = {
-            ...packageJson.nodemonConfig.env,
-            GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
-            LOGGER_CONF: path.join(installDir, "config", "logger.json"),
-            NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
-            PROPERTY_DIR: path.join(installDir, "config"),
-        };
-        fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
-            encoding: "utf-8",
-        });
+            packageJson.nodemonConfig.env = {
+                ...packageJson.nodemonConfig.env,
+                GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
+                LOGGER_CONF: path.join(installDir, "config", "logger.json"),
+                NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
+                PROPERTY_DIR: path.join(installDir, "config"),
+            };
+            fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
+                encoding: "utf-8",
+            });
+        }
+        if (config.isInstallWww) {
+            deleteFolderRecursive(wwwDir);
+            fs.mkdirSync(wwwDir, {
+                recursive: true,
+            });
+            await copyFiles(path.join(tempDir, "core"), wwwDir);
+        }
     } else {
         const dbMeta = new pg.Client({
             database: `${config.dbPrefixMeta}meta`,
@@ -491,90 +497,98 @@ const install = async (config: IInstallConfig, progress: (number, string) => voi
         WHERE ck_id='g_sys_gate_url';
         `);
         progress(75, "Creating catalogs...");
-        for (const dir of ["config", "logs", "tmp", "ungate", "core-module", "core-assets"]) {
-            fs.mkdirSync(path.join(installDir, dir), {
+        if (config.isInstallWww) {
+            fs.mkdirSync(wwwDir, {
                 recursive: true,
             });
+            progress(85, "Copy files...");
+            await copyFiles(path.join(tempDir, "core"), wwwDir);
         }
-        fs.mkdirSync(wwwDir, {
-            recursive: true,
-        });
-        progress(80, "Creating configs...");
+        if (config.isInstallApp) {
+            for (const dir of ["config", "logs", "tmp", "ungate", "core-module", "core-assets"]) {
+                fs.mkdirSync(path.join(installDir, dir), {
+                    recursive: true,
+                });
+            }
+            progress(80, "Creating configs...");
 
-        const configFiles = [
-            "logger.json",
-            "t_context.toml",
-            "t_events.toml",
-            "t_plugins.toml",
-            "t_providers.toml",
-            "t_query.toml",
-            "t_schedulers.toml",
-            "t_servers.toml",
-        ];
+            const configFiles = [
+                "logger.json",
+                "t_context.toml",
+                "t_events.toml",
+                "t_plugins.toml",
+                "t_providers.toml",
+                "t_query.toml",
+                "t_schedulers.toml",
+                "t_servers.toml",
+            ];
 
-        const configReplaces = [
-            ["#MAIN_LOGS_PATH#", path.join(installDir, "logs", "main.json")],
-            ["#ERROR_LOGS_PATH#", path.join(installDir, "logs", "error.log")],
-            ["#APP_DIR#", installDir],
-            ["#DB_HOST#", `${conn.hostname || "127.0.0.1"}`],
-            ["#DB_PORT#", `${conn.port || "5432"}`],
-            ["#SERVER_HOST#", os.hostname],
-            ["#SERVER_IP#", "127.0.0.1"],
-            ["#DB_PREFIX_META#", config.dbPrefixMeta],
-            ["#DB_PREFIX_AUTH#", config.dbPrefixAuth],
-        ];
+            const configReplaces = [
+                ["#MAIN_LOGS_PATH#", path.join(installDir, "logs", "main.json")],
+                ["#ERROR_LOGS_PATH#", path.join(installDir, "logs", "error.log")],
+                ["#APP_DIR#", installDir],
+                ["#DB_HOST#", `${conn.hostname || "127.0.0.1"}`],
+                ["#DB_PORT#", `${conn.port || "5432"}`],
+                ["#SERVER_HOST#", os.hostname],
+                ["#SERVER_IP#", "127.0.0.1"],
+                ["#DB_PREFIX_META#", config.dbPrefixMeta],
+                ["#DB_PREFIX_AUTH#", config.dbPrefixAuth],
+            ];
 
-        for (const fileName of configFiles) {
-            let fileContent = fs.readFileSync(path.join(__dirname, "config", fileName), {encoding: "utf-8"});
+            for (const fileName of configFiles) {
+                let fileContent = fs.readFileSync(path.join(__dirname, "config", fileName), {encoding: "utf-8"});
 
-            configReplaces.map((replace: any) => {
-                fileContent = fileContent.replace(new RegExp(replace[0]!, "g"), replace[1]!);
-                if (isWin32) {
-                    fileContent = fileContent.replace(/\\/g, "\\\\");
-                }
+                configReplaces.map((replace: any) => {
+                    fileContent = fileContent.replace(new RegExp(replace[0]!, "g"), replace[1]!);
+                    if (isWin32) {
+                        fileContent = fileContent.replace(/\\/g, "\\\\");
+                    }
+                });
+                fs.writeFileSync(path.join(installDir, "config", fileName), fileContent, {encoding: "utf-8"});
+            }
+
+            progress(85, "Copy files...");
+            await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"));
+
+            progress(95, "Patching package...");
+
+            const packageJson: any = JSON.parse(
+                fs.readFileSync(path.join(installDir, "ungate", "package.json"), {encoding: "utf-8"}),
+            );
+
+            packageJson.nodemonConfig.env = {
+                ...packageJson.nodemonConfig.env,
+                GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
+                LOGGER_CONF: path.join(installDir, "config", "logger.json"),
+                NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
+                PROPERTY_DIR: path.join(installDir, "config"),
+            };
+
+            fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
+                encoding: "utf-8",
             });
-            fs.writeFileSync(path.join(installDir, "config", fileName), fileContent, {encoding: "utf-8"});
         }
-
-        progress(85, "Copy files...");
-        await copyFiles(path.join(tempDir, "ungate"), path.join(installDir, "ungate"));
-        await copyFiles(path.join(tempDir, "core"), wwwDir);
-        progress(95, "Patching package...");
-
-        const packageJson: any = JSON.parse(
-            fs.readFileSync(path.join(installDir, "ungate", "package.json"), {encoding: "utf-8"}),
-        );
-
-        packageJson.nodemonConfig.env = {
-            ...packageJson.nodemonConfig.env,
-            GATE_UPLOAD_DIR: path.join(installDir, "tmp"),
-            LOGGER_CONF: path.join(installDir, "config", "logger.json"),
-            NEDB_TEMP_DB: path.join(installDir, "tmp", "db"),
-            PROPERTY_DIR: path.join(installDir, "config"),
-        };
-
-        fs.writeFileSync(path.join(installDir, "ungate", "package.json"), JSON.stringify(packageJson, null, 2), {
-            encoding: "utf-8",
-        });
         config.isUpdate = true;
         config.appLocation = getInstallDir(config.appLocation!);
         config.wwwLocation = getInstallDir(config.wwwLocation!);
+    }
+    fs.writeFileSync(path.join(os.homedir(), ".core_install_conf.json"), JSON.stringify(config, null, 2), {
+        encoding: "utf-8",
+    });
+    if (config.isInstallApp) {
         fs.writeFileSync(path.join(installDir, ".core_install_conf.json"), JSON.stringify(config, null, 2), {
             encoding: "utf-8",
         });
-        fs.writeFileSync(path.join(os.homedir(), ".core_install_conf.json"), JSON.stringify(config, null, 2), {
-            encoding: "utf-8",
-        });
-    }
-    if (os.platform() !== "win32") {
-        await exec("chmod +x *", {
-            cwd: path.resolve(installDir, "ungate", "node_modules", ".bin"),
-            env: process.env,
-        });
-        await exec("yarn remove -W node-windows", {
-            cwd: path.resolve(installDir, "ungate"),
-            env: process.env,
-        });
+        if (os.platform() !== "win32") {
+            await exec("chmod +x *", {
+                cwd: path.resolve(installDir, "ungate", "node_modules", ".bin"),
+                env: process.env,
+            });
+            await exec("yarn remove -W node-windows", {
+                cwd: path.resolve(installDir, "ungate"),
+                env: process.env,
+            });
+        }
     }
     deleteFolderRecursive(tempDir);
     progress(100, "Finishing...");
