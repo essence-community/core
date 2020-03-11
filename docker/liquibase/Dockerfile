@@ -1,5 +1,5 @@
-FROM openjdk:13
+FROM openjdk:12-oracle
 
-RUN apt-get update && apt-get -y install git
+RUN yum install git -y
 
 CMD /scripts/run-migration.sh
