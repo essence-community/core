@@ -1,4 +1,4 @@
-FROM openjdk:12.0.2
+FROM openjdk:13
 
 RUN apt-get update && apt-get -y install git
 
