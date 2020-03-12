@@ -233,14 +233,10 @@ gulp.task("create_os_package", async () => {
     const platform = os.platform();
 
     await cmdExec(
-        `node ${path.join(
-            __dirname,
-            "node_modules",
-            ".bin",
-            "electron-packager",
-        )} ./build install_app --overwrite --platform=${platform} --app-version="${VERSION}" --arch=x64 --out=build_app`,
+        `npm run build:electron-packager -- ./build install_app --overwrite --platform=${platform} --app-version="${VERSION}" --arch=x64 --out=build_app`,
         {
             env: process.env,
+            cwd: __dirname,
             maxBuffer: MAX_BUFFER,
         },
     );
