@@ -1,14 +1,28 @@
 import React, {useEffect, useState, Fragment} from "react";
 import {Button, Block, Flexbox, Text, ScrollView} from "@flow-ui/core";
 import {ipcRenderer} from "electron";
+import {IInstallConfig} from "../../backend/Config.types";
 import {IStepProps} from "..";
-import { CloudUpload } from "@flow-ui/core/icons";
 
-const info = (realWwwPath: string, appLocation: string, ungateLocation: string, appPort: string) => {
-    return `1. start:
+const info = ({
+    config,
+    realWwwPath,
+    appLocation,
+    ungateLocation,
+}: {
+    config: IInstallConfig;
+    realWwwPath?: string;
+    appLocation?: string;
+    ungateLocation?: string;
+}) => {
+    return (
+        (config.isInstallApp
+            ? `- Start service:
     cd ${ungateLocation} && yarn server 
-
-2. Add to nginx: 
+`
+            : "") +
+        (config.isInstallWww
+            ? `- Add to nginx: 
     map $http_upgrade $connection_upgrade {
         default upgrade;
         '' close;
@@ -16,18 +30,18 @@ const info = (realWwwPath: string, appLocation: string, ungateLocation: string, 
     server {
         listen 80;
         server_name _;
-        root ${realWwwPath};
+        root ${realWwwPath.replace("\\", "/")};
         location /gate-core {
-            proxy_pass http://127.0.0.1:${appPort}/api;
+            proxy_pass http://127.0.0.1:${config.appPort}/api;
         }
         location /core-module {
-            alias ${appLocation}/core-module;
+            alias ${appLocation.replace("\\", "/")}/core-module;
         }
         location /core-assets {
-            alias ${appLocation}/core-assets;
+            alias ${appLocation.replace("\\", "/")}/core-assets;
         }
         location /core_notification {
-            proxy_pass http://127.0.0.1:${appPort}/notification;
+            proxy_pass http://127.0.0.1:${config.appPort}/notification;
             proxy_http_version 1.1;
             proxy_set_header Upgrade $http_upgrade;
             proxy_set_header Connection "Upgrade";
@@ -44,7 +58,9 @@ const info = (realWwwPath: string, appLocation: string, ungateLocation: string, 
         }
     }
 
-    `;
+    `
+            : "")
+    );
 };
 const Finish = (props: IStepProps) => {
     const [realWwwPath, setRealWwwPath] = useState(props.config.wwwLocation!);
@@ -75,17 +91,24 @@ const Finish = (props: IStepProps) => {
             <Block decoration="surface">
                 <ScrollView h="calc(100vh - 12rem)">
                     <Block p="s m">
-                        <pre>{info(realWwwPath, realAppPath, realUngatePath, props.config.appPort!)}</pre>
+                        <pre>
+                            {info({
+                                appLocation: realAppPath,
+                                config: props.config,
+                                realWwwPath,
+                                ungateLocation: realUngatePath,
+                            })}
+                        </pre>
                     </Block>
                 </ScrollView>
             </Block>
-            <Block flex={1}/>
+            <Block flex={1} />
             <Flexbox
                 p="m"
                 mx="-1rem"
-                backgroundColor={c => c.surface}
+                backgroundColor={(c) => c.surface}
                 justifyContent="flex-end"
-                children={(
+                children={
                     <Button
                         children="Close"
                         decoration="outline"
@@ -93,7 +116,7 @@ const Finish = (props: IStepProps) => {
                             ipcRenderer.send("close");
                         }}
                     />
-                )}
+                }
             />
         </Fragment>
     );

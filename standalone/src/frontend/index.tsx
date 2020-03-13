@@ -24,6 +24,7 @@ export interface IStepProps {
 
 /* eslint-disable sort-keys */
 const defaultConfig: IInstallConfig = {
+    isInstallApp: true,
     appLocation: "./gate_work",
     appPort: "8080",
     dbUsername: "postgres",
@@ -31,6 +32,7 @@ const defaultConfig: IInstallConfig = {
     dbConnectString: "postgres://localhost:5432/postgres",
     dbPrefixMeta: "core_",
     dbPrefixAuth: "core_",
+    isInstallWww: true,
     wwwLocation: "./www_public",
 };
 /* eslint-enable sort-keys */

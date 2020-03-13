@@ -935,25 +935,26 @@
     prettier "^1.19.1"
     typescript "^3.7.3"
 
-"@flow-ui/core@^0.1.32":
-  version "0.1.35"
-  resolved "https://registry.yarnpkg.com/@flow-ui/core/-/core-0.1.35.tgz#2460ce2f1569cddb5857773c2e8442a4dee9da80"
-  integrity sha512-l2vuw6o/qtjsnlj8GKeJWjMP7iSJAJiygupwCd+vz8HK9oiV0Pz+M35zXvOQqupCkwBDrlLM1PTWW3DhgiQLUg==
+"@flow-ui/core@^0.1.39":
+  version "0.1.50"
+  resolved "https://registry.yarnpkg.com/@flow-ui/core/-/core-0.1.50.tgz#36412f8d0349e328398a0dec7457ba74d9f3c4b6"
+  integrity sha512-zNCcIMkYs6vHl0XCizHYl/CFcn/kFNdpD9YIfXwVUIZZGtZQsweKc7Ar95u3MrjevsDFPKLZD+J2XHMpJ0XMSw==
   dependencies:
     "@emotion/cache" "^10.0.27"
     "@emotion/core" "^10.0.27"
-    "@flow-ui/whale" "^0.1.13"
+    "@flow-ui/whale" "^0.1.21"
     "@types/color" "^3.0.1"
     color "^3.1.2"
     csstype "^2.6.8"
     emotion-theming "^10.0.27"
     imask "^6.0.1"
     moment "^2.24.0"
+    rifm "^0.11.0"
 
-"@flow-ui/whale@^0.1.13":
-  version "0.1.13"
-  resolved "https://registry.yarnpkg.com/@flow-ui/whale/-/whale-0.1.13.tgz#1199a74a6fe419acdfc78b926921d9ccae4a2ed0"
-  integrity sha512-gugJbTM1WWxj9XkEGokvVA8jriUaNg0UXiFPl/9WzQMzi2vYb217EAwokpSkhjTt5CWq2ljYY2dKq3kcuFSN+Q==
+"@flow-ui/whale@^0.1.21":
+  version "0.1.21"
+  resolved "https://registry.yarnpkg.com/@flow-ui/whale/-/whale-0.1.21.tgz#a2e2965bf144c172f014ea2e65b3b70cf0727afa"
+  integrity sha512-TfAZWenfNdpsBlBk3xBwDKhW++5sly1FJfPgefS2S3ktWlEJW59mAzs75xpQhR05VtuCJMslS9Hbk5GP2gr81A==
 
 "@sindresorhus/is@^0.14.0":
   version "0.14.0"
@@ -6027,6 +6028,11 @@ ret@~0.1.10:
   version "0.1.15"
   resolved "https://registry.yarnpkg.com/ret/-/ret-0.1.15.tgz#b8a4825d5bdb1fc3f6f53c2bc33f81388681c7bc"
   integrity sha512-TTlYpa+OL+vMMNG24xSlQGEJ3B/RzEfUlLct7b5G/ytav+wPrplCpVMFuwzXbkecJrb6IYo1iFb0S9v37754mg==
+
+rifm@^0.11.0:
+  version "0.11.0"
+  resolved "https://registry.yarnpkg.com/rifm/-/rifm-0.11.0.tgz#817a3f3319f2c3461ca42630dfe9f0c5cb84288b"
+  integrity sha512-h1bkVl1n69e7hYErPZF1rdhq6mTeUKecSsfimo++caU/gkAje5M8wepyKVaoQ8oLSgoC1L/2EGCr+vYAYgaM3A==
 
 rimraf@2.6.3:
   version "2.6.3"

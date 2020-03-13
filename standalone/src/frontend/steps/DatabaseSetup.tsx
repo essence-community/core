@@ -1,7 +1,7 @@
 import { Block, Button, Flexbox, Grid, dialog, notify, Text, TextField, Header, Paragraph } from "@flow-ui/core";
 import { AlertTriangle, ArrowIosBack, ArrowIosForward, Globe2, Info } from "@flow-ui/core/icons";
 import { ipcRenderer } from "electron";
-import React, { Fragment, useEffect, useState } from "react";
+import React, { Fragment, useEffect } from "react";
 import { IStepProps } from "..";
 
 // eslint-disable-next-line max-lines-per-function
@@ -79,6 +79,7 @@ const DatabaseSetup = (props: IStepProps) => {
                         })
                     }
                 />
+                <div></div>
                 <TextField
                     label="Database meta prefix"
                     value={config.dbPrefixMeta}
