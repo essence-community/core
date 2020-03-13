@@ -1,4 +1,4 @@
-import {Block, Button, Flexbox, Grid, Paragraph, Text, TextField, Checkbox} from "@flow-ui/core";
+import {Block, Button, Divider, Flexbox, Grid, Paragraph, Text, TextField, Checkbox} from "@flow-ui/core";
 import {ArrowIosForward, Folder} from "@flow-ui/core/icons";
 import {ipcRenderer} from "electron";
 import React, {Fragment, useEffect} from "react";
@@ -16,13 +16,14 @@ const GeneralSetup = (props: IStepProps) => {
     const {config, setConfig} = props;
     const {isUpdate} = config;
 
-    const BrowseButton = (props: {value: "appLocation" | "wwwLocation"}) => (
+    const BrowseButton = (props: {value: "appLocation" | "wwwLocation", disabled?: boolean}) => (
         <Button
             size="xs"
             mr="-0.25rem"
             children="Browse"
             decoration="outline"
             rightChild={<Folder />}
+            disabled={props.disabled}
             onClick={() => {
                 ipcRenderer.send(
                     "select-dirs",
@@ -53,97 +54,94 @@ const GeneralSetup = (props: IStepProps) => {
                     />
                 ))}
             </Block>
-            <Block my="m">
-                <Paragraph m={0} color={(c) => c.hard}>
-                    Installation mode
-                </Paragraph>
-                <Flexbox>
-                    <Button
-                        size="xs"
-                        decoration={!isUpdate ? "filled" : "outline"}
-                        styles={{
-                            container: () => [{borderTopRightRadius: 0, borderBottomRightRadius: 0}],
-                        }}
-                        children="Install"
-                        onClick={() => {
-                            setConfig({isUpdate: false});
+            <Grid mb="1rem" columnGap="0.5rem" rowGap="2rem" templateColumns="1fr 1fr" alignItems="start">
+                <Grid my="m" gap="0.5rem">
+                    <Paragraph m={0} color={(c) => c.hard}>Select installation mode</Paragraph>
+                    <Flexbox mt="0.5rem">
+                        <Button
+                            decoration={!isUpdate ? "filled" : "outline"}
+                            styles={{
+                                container: () => [{ borderTopRightRadius: 0, borderBottomRightRadius: 0 }],
+                            }}
+                            children="Install"
+                            onClick={() => {
+                                setConfig({ isUpdate: false });
+                            }}
+                        />
+                        <Button
+                            decoration={isUpdate ? "filled" : "outline"}
+                            styles={{
+                                container: () => [{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }],
+                            }}
+                            children="Update"
+                            onClick={() => {
+                                setConfig({ isUpdate: true });
+                            }}
+                        />
+                    </Flexbox>
+                </Grid>
+                <Grid my="m" gap="0.5rem">
+                    <Paragraph m={0} color={(c) => c.hard}>Wound you like to {isUpdate ? 'update' : 'install'}</Paragraph>
+                    <Checkbox
+                        label="Services"
+                        checked={config.isInstallApp}
+                        onChange={() => {
+                            setConfig({
+                                isInstallApp: !config.isInstallApp,
+                            });
                         }}
                     />
-                    <Button
-                        size="xs"
-                        decoration={isUpdate ? "filled" : "outline"}
-                        styles={{
-                            container: () => [{borderTopLeftRadius: 0, borderBottomLeftRadius: 0}],
-                        }}
-                        children="Update"
-                        onClick={() => {
-                            setConfig({isUpdate: true});
+                    <Checkbox
+                        label="Web app"
+                        checked={config.isInstallWww}
+                        onChange={() => {
+                            setConfig({
+                                isInstallWww: !config.isInstallWww,
+                            });
                         }}
                     />
-                </Flexbox>
-            </Block>
-            <Grid columnGap="0.5rem" rowGap="2rem" templateColumns="1fr 1fr" alignItems="start">
-                <Checkbox
-                    label="Services location"
-                    checked={config.isInstallApp}
-                    onChange={() => {
-                        setConfig({
-                            isInstallApp: !config.isInstallApp,
-                        });
-                    }}
-                />
-                <Checkbox
-                    label="Web app location"
-                    checked={config.isInstallWww}
-                    onChange={() => {
-                        setConfig({
-                            isInstallWww: !config.isInstallWww,
-                        });
-                    }}
-                />
+                </Grid>
             </Grid>
+            <Divider mb="1rem" gap={5} />
             <Grid columnGap="0.5rem" rowGap="2rem" templateColumns="1fr 1fr" alignItems="start">
-                {config.isInstallApp ? (
-                    <TextField
-                        label="Services location"
-                        value={config.appLocation}
-                        onChange={(e) => {
-                            ipcRenderer.send("check_config_install", JSON.stringify(config));
-                            setConfig({
-                                appLocation: e.target.value,
-                            });
-                        }}
-                        hint={
-                            <Text size="s" color={(c) => c.lightest}>
-                                Provide path where you would like to install services
+                <TextField
+                    label="Services location"
+                    value={config.appLocation}
+                    disabled={!config.isInstallApp}
+                    onChange={(e) => {
+                        ipcRenderer.send("check_config_install", JSON.stringify(config));
+                        setConfig({
+                            appLocation: e.target.value,
+                        });
+                    }}
+                    hint={
+                        <Text size="s" color={(c) => c.lightest}>
+                            Provide path where you would like to install services
                             </Text>
-                        }
-                        rightChild={<BrowseButton value="appLocation" />}
-                    />
-                ) : (
-                    <div></div>
-                )}
-                {config.isInstallWww ? (
-                    <TextField
-                        label="Web app location"
-                        value={config.wwwLocation}
-                        onChange={(e) => {
-                            setConfig({
-                                wwwLocation: e.target.value,
-                            });
-                        }}
-                        hint={
-                            <Text size="s" color={(c) => c.lightest}>
-                                Provide path where you would like to install www
+                    }
+                    rightChild={<BrowseButton disabled={!config.isInstallApp} value="appLocation" />}
+                />
+                <TextField
+                    label="Web app location"
+                    value={config.wwwLocation}
+                    disabled={!config.isInstallWww}
+                    onChange={(e) => {
+                        setConfig({
+                            wwwLocation: e.target.value,
+                        });
+                    }}
+                    hint={
+                        <Text size="s" color={(c) => c.lightest}>
+                            Provide path where you would like to install www
                             </Text>
-                        }
-                        rightChild={<BrowseButton value="wwwLocation" />}
-                    />
-                ) : null}
-                {isUpdate || !config.isInstallApp ? null : (
+                    }
+                    rightChild={<BrowseButton disabled={!config.isInstallWww} value="wwwLocation" />}
+                />
+                {!isUpdate && (
                     <TextField
                         label="Application port"
                         value={config.appPort}
+                        disabled={!config.isInstallApp}
                         onChange={(e) => {
                             setConfig({
                                 appPort: e.target.value,
