@@ -54,14 +54,20 @@ const Finish = (props: IStepProps) => {
     useEffect(() => {
         props.setTitle("Complete");
         props.setSubtitle("Installation complete successfully");
-        ipcRenderer.on("real_path", (event, arg) => {
-            const obj = JSON.parse(arg);
 
+        const onRealPath = (event, arg) => {
+            const obj = JSON.parse(arg);
             setRealWwwPath(obj.wwwLocation);
             setRealAppPath(obj.appLocation);
             setRealUngatePath(obj.ungateLocation);
-        });
+        }
+        
+        ipcRenderer.on("real_path", onRealPath);
         ipcRenderer.send("real_path", JSON.stringify(props.config));
+
+        return () => {
+            ipcRenderer.removeListener("real_path", onRealPath);
+        }
     }, []);
 
     return (

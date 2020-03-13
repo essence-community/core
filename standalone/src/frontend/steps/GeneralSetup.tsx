@@ -29,7 +29,7 @@ const GeneralSetup = (props: IStepProps) => {
                     "select-dirs",
                     JSON.stringify({
                         config,
-                        key: "wwwLocation",
+                        key: props.value,
                     }),
                 );
             }}

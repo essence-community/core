@@ -13,7 +13,7 @@ const Installing = (props: IStepProps) => {
         props.setTitle("Installing");
         props.setSubtitle("Wait until complete, it may take a couple of minutes");
 
-        ipcRenderer.on("progress", (event, arg) => {
+        const onProgress = (event, arg) => {
             const pkg = JSON.parse(arg);
 
             setMessage(pkg.message);
@@ -21,13 +21,20 @@ const Installing = (props: IStepProps) => {
             if (pkg.percent == 100) {
                 props.onNext();
             }
-        });
-
-        ipcRenderer.on("install_error", (event, arg) => {
+        }
+        const onInstallError = (event, arg) => {
             setError(arg);
-        });
+        }
+
+        ipcRenderer.on("progress", onProgress);
+        ipcRenderer.on("install_error", onInstallError);
 
         ipcRenderer.send("install", JSON.stringify(props.config));
+
+        return () => {
+            ipcRenderer.removeListener('progress', onProgress)
+            ipcRenderer.removeListener('install_error', onInstallError)
+        }
     }, []);
 
     return (

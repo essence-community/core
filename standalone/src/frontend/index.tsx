@@ -52,15 +52,15 @@ const App = () => {
 
     useEffect(() => {
         ipcRenderer.send("check_config_install");
-        ipcRenderer.on("check_config_install", (event, arg) => {
+        const onCheckConfig = (event, arg) => {
             if (arg) {
                 setConfig({
                     ...config,
                     ...JSON.parse(arg),
                 });
             }
-        });
-        ipcRenderer.on("check", (event, arg) => {
+        }
+        const onCheck = (event, arg) => {
             if (!arg) {
                 setStep((prevState) => prevState + 1);
 
@@ -71,7 +71,15 @@ const App = () => {
                 timeout: 5000,
                 title: "Error",
             });
-        });
+        }
+
+        ipcRenderer.on("check_config_install", onCheckConfig);
+        ipcRenderer.on("check", onCheck);
+        
+        return () => {
+            ipcRenderer.removeListener("check_config_install", onCheckConfig);
+            ipcRenderer.removeListener("check", onCheck);
+        }
     }, []);
 
     return (

@@ -12,7 +12,7 @@ const DatabaseSetup = (props: IStepProps) => {
         props.setTitle("Database");
         props.setSubtitle("Setup PostgreSQL settings");
 
-        ipcRenderer.on("check_database_connection", (event, arg) => {
+        const onConnectionCheck = (event, arg) => {
             if (!arg) {
                 notify({
                     message: "Success!",
@@ -27,7 +27,12 @@ const DatabaseSetup = (props: IStepProps) => {
                 timeout: 5000,
                 title: "Connection",
             });
-        });
+        }
+        ipcRenderer.on("check_database_connection", onConnectionCheck);
+
+        return () => {
+            ipcRenderer.removeListener("check_database_connection", onConnectionCheck);
+        }
     }, []);
 
     return (
