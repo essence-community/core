@@ -1,0 +1,8 @@
+[[data]]
+ck_id = "#SERVER_HOST#"
+cv_ip = "#SERVER_IP#"
+[[data]]
+[data."$$indexCreated"]
+fieldName = "ck_id"
+unique = true
+sparse = false

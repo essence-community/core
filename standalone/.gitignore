@@ -1,0 +1,6 @@
+.vs
+*.log
+node_modules
+*.lock
+build
+build_app

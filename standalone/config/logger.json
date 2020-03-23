@@ -1,0 +1,26 @@
+{
+    "handlers": {
+        "errors": {
+            "class": "rufus/handlers/rotating",
+            "file": "#ERROR_LOGS_PATH#",
+            "level": "ERROR",
+            "maxSize": "30mb",
+            "maxFile": "30"
+        },
+        "main": {
+            "class": "rufus/handlers/rotating",
+            "file": "#MAIN_LOGS_PATH#",
+            "maxSize": "30mb",
+            "maxFile": "30"
+        },
+        "console": {
+            "class": "rufus/handlers/console"
+        }
+    },
+    "loggers": {
+        "root": {
+            "level": "INFO",
+            "handlers": ["main", "errors"]
+        }
+    }
+}

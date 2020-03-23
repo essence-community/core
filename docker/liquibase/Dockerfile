@@ -1,4 +1,4 @@
-FROM openjdk:12.0.2
+FROM openjdk:12-oracle
 
 RUN yum install git -y
 
