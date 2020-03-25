@@ -117,7 +117,10 @@ gulp.task("copy", async () => {
 
 gulp.task("create_os_package", async () => {
     await Promise.all([
-        cmdExec("git submodule update --init -f --remote"),
+        cmdExec("git submodule update --init -f --remote", {
+            cwd: path.resolve(__dirname, ".."),
+            env: process.env,
+        }),
         cmdExec("npm install", {
             cwd: path.resolve(__dirname, "build"),
             env: process.env,
