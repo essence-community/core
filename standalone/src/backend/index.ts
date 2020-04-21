@@ -258,6 +258,28 @@ async function checkVersionSQLDatabase(config: IInstallConfig) {
     }
 }
 
+async function checkLib(config: IInstallConfig) {
+        const conn = URL.parse(config.dbConnectString!);
+        const db = new pg.Client({
+            database: conn.pathname!.substr(1),
+            host: conn.hostname!,
+            password: config.dbPassword!,
+            port: parseInt(conn.port!, 10),
+            user: config.dbUsername!,
+        });
+
+        await db.connect();
+        const {rows} = await db.query("select * from pg_available_extensions where name in ('uuid-ossp', 'pgcrypto')");
+
+        if (rows.filter((row) => row.name === 'uuid-ossp').length === 0) {
+            throw new Error("Could not open extension uuid-ossp. Need install contrib for postgres")
+        }
+
+        if (rows.filter((row) => row.name === 'pgcrypto').length === 0) {
+            throw new Error("Could not open extension pgcrypto. Need install contrib for postgres")
+        }
+}
+
 // eslint-disable-next-line max-statements
 ipcMain.on("check", async (event, arg) => {
     const {config, step} = JSON.parse(arg);
@@ -303,6 +325,9 @@ ipcMain.on("check", async (event, arg) => {
         checkZip();
         await checkNodeJsVersion();
         await checkJavaVersion();
+        if (step > 2 && !config.isUpdate) {
+            await checkLib(config);
+        }
         if (step > 2 && config.isUpdate) {
             await checkVersionUpdateSQLDatabase(config);
         }
@@ -658,13 +683,24 @@ if (isNotGui) {
     readConfig(config)
         .then(async () => {
             checkZip();
+            await checkNodeJsVersion();
+            await checkJavaVersion();
+            if (!config.isUpdate) {
+                await checkLib(config);
+            }
+            if (config.isUpdate) {
+                await checkVersionUpdateSQLDatabase(config);
+            }
         })
         .then(() => {
             return install(config, (num) => {
                 bar.update(num);
             });
         })
-        .catch((err) => console.error(err))
+        .catch((err) => {
+            console.error(err);
+            app.exit(1);
+        })
         .finally(() => {
             bar.stop();
             app.exit();
