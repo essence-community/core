@@ -116,6 +116,7 @@ gulp.task("copy", async () => {
 });
 
 gulp.task("create_os_package", async () => {
+    const platform = os.platform();
     await Promise.all([
         cmdExec("git submodule update --init -f --remote", {
             cwd: path.resolve(__dirname, ".."),
@@ -248,7 +249,7 @@ gulp.task("create_os_package", async () => {
 
     dbmsAuthZip.addLocalFolder(path.join(__dirname, "..", "backend", "dbms_auth"));
     dbmsAuthZip.writeZip(path.join(__dirname, "build", `dbms_auth_${minCommitBackend}.zip`));
-    const platform = os.platform();
+
 
     await cmdExec(
         `npm run build:electron-packager -- ./build install_app --overwrite --platform=${platform} --app-version="${VERSION}" --arch=x64 --out=build_app`,
