@@ -1,0 +1,9 @@
+deploy_installer_dev:
+  stage: deploy
+  only:
+      - /master/
+      - /dev/
+      - /^CORE-\d+$/
+  script:
+    - git clean -fdx
+    - ~/.bin/build_installer.sh

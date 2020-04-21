@@ -169,7 +169,6 @@ gulp.task("create_os_package", async () => {
             env: {
                 ...process.env,
                 BABEL_ENV: "production",
-                NODE_ENV: "production",
             },
         }),
         cmdExec("yarn frontend:build", {
@@ -177,7 +176,6 @@ gulp.task("create_os_package", async () => {
             env: {
                 ...process.env,
                 BABEL_ENV: "production",
-                NODE_ENV: "production",
                 REACT_APP_REQUEST: "GATE",
                 REACT_APP_COMMIT_ID: commitFrontend,
                 REACT_APP_BRANCH_DATE_TIME: dateCommitFrontend,
@@ -192,7 +190,7 @@ gulp.task("create_os_package", async () => {
         }),
     ]);
     await cmdExec(
-        "yarn install --ignore-platform --ignore-arch && yarn add --ignore-platform --ignore-arch -W node-windows",
+        "yarn install",
         {
             cwd: path.join(__dirname, "..", "backend", "bin"),
             maxBuffer: MAX_BUFFER,
@@ -203,10 +201,27 @@ gulp.task("create_os_package", async () => {
             },
         },
     );
+    if (platform === "win32") {
+        await cmdExec(
+            "yarn add -W node-windows",
+            {
+                cwd: path.join(__dirname, "..", "backend", "bin"),
+                maxBuffer: MAX_BUFFER,
+                env: {
+                    ...process.env,
+                    BABEL_ENV: "production",
+                    NODE_ENV: "production",
+                },
+            },
+        );
+    }
     let versionstr = fs
         .readFileSync(path.join(__dirname, "..", "backend", "dbms", "s_mt", "version.sql"), {encoding: "utf-8"})
         .toString();
-
+    
+    versionstr += "\n--changeset builder:update_url dbms:postgresql\n";
+    versionstr += "UPDATE s_mt.t_sys_setting SET cv_value='/core-module' WHERE ck_id='g_sys_module_url'\n";
+    versionstr += "UPDATE s_mt.t_sys_setting SET cv_value='/gate-core' WHERE ck_id='g_sys_gate_url'\n";
     versionstr += `\n--changeset builder:update_${minCommitBackend} dbms:postgresql\n`;
     versionstr += `update s_mt.t_sys_setting set cv_value='${fullCommitBackend}' where ck_id='core_db_commit';\n`;
     versionstr += `update s_mt.t_sys_setting set cv_value='${versionApp}' where ck_id='core_db_major_version';\n`;
