@@ -6,4 +6,4 @@ deploy_installer_dev:
       - /^CORE-\d+$/
   script:
     - git clean -fdx
-    - ~/.bin/build_installer.sh
+    - "~/.bin/build_installer.sh"
