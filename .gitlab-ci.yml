@@ -1,0 +1,14 @@
+deploy_installer_dev:
+  stage: deploy
+  only:
+      - /master/
+      - /dev/
+      - /^CORE-\d+$/
+  script:
+    - git clean -fdx
+    - git submodule update --init -f --remote
+    - cd $CI_PROJECT_DIR/frontend
+    - git clean -fdx
+    - cd $CI_PROJECT_DIR/backend
+    - git clean -fdx
+    - "~/.bin/build_installer.sh"
