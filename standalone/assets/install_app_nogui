@@ -1,0 +1,25 @@
+#!/usr/bin/env bash
+
+if [ ! -n "${INSTALLER_HOME+x}" ]; then
+  # echo "INSTALLER_HOME is not set."
+
+  ## resolve links - $0 may be a symlink
+  PRG="$0"
+  while [ -h "$PRG" ] ; do
+    ls=`ls -ld "$PRG"`
+    link=`expr "$ls" : '.*-> \(.*\)$'`
+    if expr "$link" : '/.*' > /dev/null; then
+    PRG="$link"
+    else
+    PRG=`dirname "$PRG"`"/$link"
+    fi
+  done
+
+
+  INSTALLER_HOME=`dirname "$PRG"`
+
+  # make it fully qualified
+  INSTALLER_HOME=`cd "$INSTALLER_HOME" && pwd`
+fi
+
+node $INSTALLER_HOME/resources/app/index.js
