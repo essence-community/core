@@ -1,6 +1,11 @@
 import * as readline from "readline";
 import {IInstallConfig} from "./Config.types";
-import {isEmpty, getInstallDir} from "./util/base";
+import {isEmpty, getInstallDir, checkNodeJsVersion, checkJavaVersion} from "./util/base";
+import * as cliProgress from 'cli-progress';
+import * as fs from 'fs';
+import * as path from 'path';
+import * as os from 'os';
+import { checkZip, checkLib, checkVersionUpdateSQLDatabase, install } from "./share";
 
 const rl = readline.createInterface({
     input: process.stdin,
@@ -96,3 +101,47 @@ export const readConfig = async (config: IInstallConfig) => {
         config.dbPrefixAuth = dbPrefixAuth;
     }
 };
+
+/* eslint-disable sort-keys */
+const config: IInstallConfig = fs.existsSync(path.join(os.homedir(), ".core_install_conf.json"))
+? JSON.parse(fs.readFileSync(path.join(os.homedir(), ".core_install_conf.json"), {encoding: "utf-8"}))
+: {
+      appLocation: getInstallDir("./gate_work"),
+      appPort: "8080",
+      dbUsername: "postgres",
+      dbPassword: "postgres",
+      dbConnectString: "postgres://localhost:5432/postgres",
+      dbPrefixMeta: "core_",
+      dbPrefixAuth: "core_",
+      isUpdate: false,
+      wwwLocation: getInstallDir("./www_public"),
+  };
+/* eslint-enable sort-keys */
+const bar = new cliProgress.SingleBar({}, cliProgress.Presets.shades_classic);
+
+bar.start(100, 0);
+readConfig(config)
+.then(async () => {
+    checkZip();
+    await checkNodeJsVersion();
+    await checkJavaVersion();
+    if (!config.isUpdate) {
+        await checkLib(config);
+    }
+    if (config.isUpdate) {
+        await checkVersionUpdateSQLDatabase(config);
+    }
+})
+.then(() => {
+    return install(config, (num) => {
+        bar.update(num);
+    });
+})
+.catch((err) => {
+    console.error(err.message, err);
+    process.exit(1);
+})
+.finally(() => {
+    bar.stop();
+    process.exit();
+});

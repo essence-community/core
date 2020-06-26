@@ -29,8 +29,11 @@ export const deleteFolderRecursive = (pathDir: string) => {
 };
 
 export function unZipFile(zipFile: Record<string, string>, tempDir: string) {
+    fs.mkdirSync(tempDir, {
+        recursive: true,
+    });
     for (const dir of Object.keys(zipFile)) {
-        const fDir = path.join(tempDir, dir);
+        const fDir = path.resolve(tempDir, dir);
 
         fs.mkdirSync(fDir, {
             recursive: true,
@@ -74,7 +77,7 @@ export function exec(
     return new Promise((resolve, reject) => {
         childProcess.exec(command, options, (error: any, stdout, stderr) => {
             if (error) {
-                error.message = `\n${stderr}`;
+                error.message = `\n${stdout}\n${stderr}`;
 
                 return reject(error);
             }
