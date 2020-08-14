@@ -218,25 +218,43 @@ gulp.task('create_os_package', async () => {
   fs.writeFileSync(path.join(__dirname, '..', 'backend', 'dbms', 's_mt', 'version.sql'), versionstr, {
     encoding: 'utf-8'
   })
+  const tar = await cmdExec("which tar").then(({stdout}) => stdout.toString().indexOf("/") === 0 ? stdout.toString() : false, () => false);
+  if (platform === "win32" || !tar) {
   const coreZip = new AdmZip()
+    coreZip.addLocalFolder(
+      path.join(__dirname, '..', 'frontend', 'packages', '@essence', 'essence-constructor-website', 'build')
+    )
+    coreZip.writeZip(path.join(__dirname, 'build', `core_${commitFrontend}.zip`))
+    const ungateZip = new AdmZip()
 
-  coreZip.addLocalFolder(
-    path.join(__dirname, '..', 'frontend', 'packages', '@essence', 'essence-constructor-website', 'build')
-  )
-  coreZip.writeZip(path.join(__dirname, 'build', `core_${commitFrontend}.zip`))
-  const ungateZip = new AdmZip()
+    ungateZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'bin'))
+    ungateZip.writeZip(path.join(__dirname, 'build', `ungate_${minCommitBackend}.zip`))
+    const dbmsZip = new AdmZip()
 
-  ungateZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'bin'))
-  ungateZip.writeZip(path.join(__dirname, 'build', `ungate_${minCommitBackend}.zip`))
-  const dbmsZip = new AdmZip()
+    dbmsZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms'))
+    dbmsZip.writeZip(path.join(__dirname, 'build', `dbms_core_${minCommitBackend}.zip`))
+    const dbmsAuthZip = new AdmZip()
 
-  dbmsZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms'))
-  dbmsZip.writeZip(path.join(__dirname, 'build', `dbms_core_${minCommitBackend}.zip`))
-  const dbmsAuthZip = new AdmZip()
-
-  dbmsAuthZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms_auth'))
-  dbmsAuthZip.writeZip(path.join(__dirname, 'build', `dbms_auth_${minCommitBackend}.zip`))
-
+    dbmsAuthZip.addLocalFolder(path.join(__dirname, '..', 'backend', 'dbms_auth'))
+    dbmsAuthZip.writeZip(path.join(__dirname, 'build', `dbms_auth_${minCommitBackend}.zip`))
+  } else {
+    await cmdExec(`tar -czf ${path.resolve(__dirname, 'build', `core_${commitFrontend}.tar.gz`)} *`, {
+      env: process.env,
+      cwd: path.resolve(__dirname, '..', 'frontend', 'packages', '@essence', 'essence-constructor-website', 'build')
+    })
+    await cmdExec(`tar -czf ${path.resolve(__dirname, 'build', `ungate_${commitFrontend}.tar.gz`)} *`, {
+      env: process.env,
+      cwd: path.resolve(__dirname, '..', 'backend', 'bin')
+    })
+    await cmdExec(`tar -czf ${path.resolve(__dirname, 'build', `dbms_core_${commitFrontend}.tar.gz`)} *`, {
+      env: process.env,
+      cwd: path.resolve(__dirname, '..', 'backend', 'dbms')
+    })
+    await cmdExec(`tar -czf ${path.resolve(__dirname, 'build', `dbms_auth_${commitFrontend}.tar.gz`)} *`, {
+      env: process.env,
+      cwd: path.resolve(__dirname, '..', 'backend', 'dbms_auth')
+    })
+  }
   await cmdExec(
     `npm run build:electron-packager -- ./build install_app --overwrite --platform=${platform} --app-version="${VERSION}" --arch=x64 --out=build_app`,
     {
