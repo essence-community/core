@@ -12,6 +12,63 @@ const rl = readline.createInterface({
     output: process.stdout,
 });
 
+const info = ({
+    config,
+    realWwwPath,
+    appLocation,
+    ungateLocation,
+}: {
+    config: IInstallConfig;
+    realWwwPath?: string;
+    appLocation?: string;
+    ungateLocation?: string;
+}) => {
+    return (
+        (config.isInstallApp
+            ? `- Start service:
+    cd ${ungateLocation} && yarn server\n`
+            : "") +
+        (config.isInstallWww
+            ? `- Add to nginx: 
+    map $http_upgrade $connection_upgrade {
+        default upgrade;
+        '' close;
+    }
+    server {
+        listen 80;
+        server_name _;
+        root ${realWwwPath?.replace("\\", "/")};
+        location /gate-core {
+            proxy_pass http://127.0.0.1:${config.appPort}/api;
+        }
+        location /core-module {
+            alias ${appLocation?.replace("\\", "/")}/core-module;
+        }
+        location /core-assets {
+            alias ${appLocation?.replace("\\", "/")}/core-assets;
+        }
+        location /core_notification {
+            proxy_pass http://127.0.0.1:${config.appPort}/notification;
+            proxy_http_version 1.1;
+            proxy_set_header Upgrade $http_upgrade;
+            proxy_set_header Connection "Upgrade";
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        }
+        location / {
+            gzip_static on;
+            try_files $uri @index;
+        }
+        location @index {
+            add_header Cache-Control no-cache;
+            expires 0;
+            try_files /index.html =404;
+        }
+    }
+
+    `
+            : "")
+    );
+};
 const questionReadline = (question: string): any => {
     return new Promise((resolve) => {
         rl.question(question, (answer?: string) => {
@@ -143,5 +200,13 @@ readConfig(config)
 })
 .finally(() => {
     bar.stop();
+    readline.cursorTo(process.stdout, 0, 0)
+    readline.clearScreenDown(process.stdout);
+    process.stdout.write(info({
+        config,
+        appLocation: getInstallDir(config.appLocation!),
+        ungateLocation: path.resolve(getInstallDir(config.appLocation!), "ungate"),
+        realWwwPath: getInstallDir(config.wwwLocation!)
+    }) + "\n");
     process.exit();
 });

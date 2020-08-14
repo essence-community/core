@@ -2,6 +2,7 @@ import * as fs from "fs";
 import * as path from "path";
 import * as childProcess from "child_process";
 import AdmZip from "adm-zip";
+import { NAME_DIR_DBMS_AUTH } from "../share";
 
 export function isEmpty(value: any, allowEmptyString = false) {
     return value == null || (allowEmptyString ? false : value === "") || (Array.isArray(value) && value.length === 0);
@@ -27,22 +28,6 @@ export const deleteFolderRecursive = (pathDir: string) => {
         fs.unlinkSync(pathDir);
     }
 };
-
-export function unZipFile(zipFile: Record<string, string>, tempDir: string) {
-    fs.mkdirSync(tempDir, {
-        recursive: true,
-    });
-    for (const dir of Object.keys(zipFile)) {
-        const fDir = path.resolve(tempDir, dir);
-
-        fs.mkdirSync(fDir, {
-            recursive: true,
-        });
-        const ziped = new AdmZip(zipFile[dir]);
-
-        ziped.extractAllTo(fDir, true);
-    }
-}
 
 export const getInstallDir = (appPath: string) => {
     if (appPath[0] === ".") {
@@ -120,4 +105,33 @@ export async function checkNodeJsVersion() {
             });
         resolve();
     });
+}
+export function extractFile(file: string, dir: string, tar: boolean = false) {
+    if (tar) {
+        return exec(`tar xf ${file}`, {
+            cwd: dir,
+            env: process.env,
+        })
+    }
+    return new Promise((resolve) => {
+        const ziped = new AdmZip(file);
+
+        ziped.extractAllTo(dir, true);
+        resolve();
+    });
+}
+
+export function unZipDbms(zipFile: Record<string, string | boolean>, tempDir: string) {
+    fs.mkdirSync(tempDir, {
+        recursive: true,
+    });
+    const row: any[] = [];
+    for (const dir of ["dbms", NAME_DIR_DBMS_AUTH]) {
+        const fDir = path.resolve(tempDir, dir);
+        fs.mkdirSync(fDir, {
+            recursive: true,
+        });
+        row.push(extractFile(zipFile[dir] as string, fDir, zipFile.tar as boolean));
+    }
+    return Promise.all(row);
 }
