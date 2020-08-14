@@ -3,16 +3,17 @@ import * as path from "path";
 import * as URL from "url";
 import * as os from "os";
 import pg from "pg";
-import { isEmpty, unZipFile, exec, getInstallDir, deleteFolderRecursive } from "./util/base";
+import { isEmpty, unZipDbms, exec, getInstallDir, deleteFolderRecursive, extractFile } from './util/base';
 import { IInstallConfig } from "./Config.types";
 import CopyDir from 'copy-dir';
 
-const NAME_DIR_DBMS_AUTH = "dbms_auth";
+export const NAME_DIR_DBMS_AUTH = "dbms_auth";
 const isWin32 = process.platform === "win32";
 const zipFile = {
     [NAME_DIR_DBMS_AUTH]: "",
     core: "",
     dbms: "",
+    tar: false,
     ungate: "",
 };
 let installDir: string;
@@ -22,19 +23,19 @@ export function checkZip() {
     const files = fs.readdirSync(__dirname);
     const res = files.reduce(
         (obj, file) => {
-            if (file.startsWith("ungate") && file.endsWith(".zip")) {
+            if (file.startsWith("ungate") && (file.endsWith(".zip") || file.endsWith(".tar.gz"))) {
                 obj.ungate = true;
                 zipFile.ungate = path.resolve(__dirname, file);
             }
-            if (file.startsWith("core") && file.endsWith(".zip")) {
+            if (file.startsWith("core") && (file.endsWith(".zip") || file.endsWith(".tar.gz"))) {
                 obj.core = true;
                 zipFile.core = path.resolve(__dirname, file);
             }
-            if (file.startsWith("dbms_auth") && file.endsWith(".zip")) {
+            if (file.startsWith("dbms_auth") && (file.endsWith(".zip") || file.endsWith(".tar.gz"))) {
                 obj[NAME_DIR_DBMS_AUTH] = true;
                 zipFile[NAME_DIR_DBMS_AUTH] = path.resolve(__dirname, file);
             }
-            if (file.startsWith("dbms_core") && file.endsWith(".zip")) {
+            if (file.startsWith("dbms_core") && (file.endsWith(".zip") || file.endsWith(".tar.gz"))) {
                 obj.dbms = true;
                 zipFile.dbms = path.resolve(__dirname, file);
             }
@@ -49,18 +50,21 @@ export function checkZip() {
         },
     );
 
+    
     if (!res.core) {
-        throw new Error("Not found core_*.zip");
+        throw new Error("Not found core_*.zip or tar.gz");
     }
     if (!res.ungate) {
-        throw new Error("Not found ungate_*.zip");
+        throw new Error("Not found ungate_*.zip or tar.gz");
     }
     if (!res.dbms) {
-        throw new Error("Not found dbms_*.zip");
+        throw new Error("Not found dbms_*.zip or tar.gz");
     }
     if (!res[NAME_DIR_DBMS_AUTH]) {
-        throw new Error("Not found dbms_auth_*.zip");
+        throw new Error("Not found dbms_auth_*.zip or tar.gz");
     }
+
+    zipFile.tar = zipFile.core.endsWith(".tar.gz");
 }
 
 export async function CreateSQLUser(db: pg.Client, user: string, login = false, su = false) {
@@ -298,7 +302,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
 
     try {
         progress(20, "Unzip...");
-        unZipFile(zipFile, tempDir);
+        await unZipDbms(zipFile, tempDir);
         const liquibaseParams = `--username=${config.isUpdate ? config.dbUsername : "s_su"} --password=${
             config.isUpdate ? config.dbPassword : "s_su"
         } --driver=org.postgresql.Driver update`;
@@ -352,7 +356,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
                 fs.mkdirSync(path.resolve(installDir, "ungate"), {
                     recursive: true,
                 });
-                await copyFiles(path.resolve(tempDir, "ungate"), path.resolve(installDir, "ungate"));
+                await extractFile(zipFile.ungate, path.resolve(installDir, "ungate"), zipFile.tar);
                 const packageJson: any = JSON.parse(
                     fs.readFileSync(path.resolve(installDir, "ungate", "package.json"), {encoding: "utf-8"}),
                 );
@@ -373,7 +377,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
                 fs.mkdirSync(wwwDir, {
                     recursive: true,
                 });
-                await copyFiles(path.resolve(tempDir, "core"), wwwDir);
+                await extractFile(zipFile.core, wwwDir, zipFile.tar);
             }
         } else {
             const dbMeta = new pg.Client({
@@ -391,7 +395,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
                     recursive: true,
                 });
                 progress(85, "Copy files...");
-                await copyFiles(path.resolve(tempDir, "core"), wwwDir);
+                await extractFile(zipFile.core, wwwDir, zipFile.tar);
             }
             if (config.isInstallApp) {
                 for (const dir of ["config", "logs", "tmp", "ungate", "core-module", "core-assets"]) {
@@ -413,7 +417,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
                 ];
 
                 const configReplaces = [
-                    ["#MAIN_LOGS_PATH#", path.resolve(installDir, "logs", "main.json")],
+                    ["#MAIN_LOGS_PATH#", path.resolve(installDir, "logs", "main.log")],
                     ["#ERROR_LOGS_PATH#", path.resolve(installDir, "logs", "error.log")],
                     ["#APP_DIR#", installDir],
                     ["#DB_HOST#", `${conn.hostname || "127.0.0.1"}`],
@@ -437,7 +441,7 @@ export const install = async (config: IInstallConfig, progress: (number, string)
                 }
 
                 progress(85, "Copy files...");
-                await copyFiles(path.resolve(tempDir, "ungate"), path.resolve(installDir, "ungate"));
+                await extractFile(zipFile.ungate, path.resolve(installDir, "ungate"), zipFile.tar);
 
                 progress(95, "Patching package...");
 

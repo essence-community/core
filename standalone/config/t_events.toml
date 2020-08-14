@@ -5,7 +5,11 @@ ck_id = "meta"
 
     [data.cct_params]
     authProvider = "authcore"
-    connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
+    poolMax = 5
+    poolMin = 1
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 cv_description = "Семафор meta"
@@ -13,7 +17,11 @@ ck_d_plugin = "CorePgSemaphore"
 ck_id = "semaphore"
 
     [data.cct_params]
-    connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
+    poolMax = 5
+    poolMin = 1
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 cv_description = "Локализация meta"
@@ -21,9 +29,11 @@ ck_d_plugin = "CorePgLocalization"
 ck_id = "localization"
 
     [data.cct_params]
+    poolMax = 50
     poolMin = 1
-    poolMax = 100
-    connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 [data."$$indexCreated"]

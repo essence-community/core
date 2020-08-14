@@ -10,11 +10,14 @@ cl_autoload = 1
 ck_d_plugin = "coreauthpg"
 cv_description = "Провайдер внутренней авторизации"
 
-[data.cct_params]
-connectString = "postgres://s_ac:s_ac@#DB_HOST#:#DB_PORT#/#DB_PREFIX_AUTH#auth"
-poolMax = 10
-sessionDuration = 2_000
-onlySession = false
+    [data.cct_params]
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_AUTH#auth"
+    poolMax = 50
+    poolMin = 1
+    user = "s_ac"
+    password = "s_ac"
+    sessionDuration = 60
+    onlySession = false
 
 [[data]]
 ck_id = "meta"
@@ -22,10 +25,13 @@ cv_description = "Провайдер работы с метаинформаци�
 cl_autoload = true
 ck_d_plugin = "PostgreSQLDb"
 
-[data.cct_params]
-core = true
-poolMax = 100
-connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
+    [data.cct_params]
+    core = true
+    poolMax = 100
+    poolMin = 1
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 [data."$$indexCreated"]
