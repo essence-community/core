@@ -1,14 +1,16 @@
 [[data]]
 ck_id = "core"
 cv_path = "/api"
-cv_description = "Основныенастройкиметаинформации"
+cv_description = "Основные настройки метаинформации"
 ck_d_plugin = "CorePGContext"
 
     [data.cct_params]
     debug = true
-    disableCache = true
     poolMax = 100
-    connectString = "postgres://s_mc:s_mc@#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
+    poolMin = 1
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#DB_HOST#:#DB_PORT#/#DB_PREFIX_META#meta"
 
 [[data]]
 [data."$$indexCreated"]
