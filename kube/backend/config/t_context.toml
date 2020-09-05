@@ -1,0 +1,19 @@
+[[data]]
+ck_id = "core"
+cv_path = "/api"
+cv_description = "Основные настройки метаинформации"
+ck_d_plugin = "CorePGContext"
+
+    [data.cct_params]
+    debug = true
+    poolMax = 100
+    poolMin = 1
+    user = "s_mc"
+    password = "s_mc"
+    connectString = "postgres://#POSTGRES_HOST#:#POSTGRES_PORT#/core_meta"
+
+[[data]]
+[data."$$indexCreated"]
+fieldName = "ck_id"
+unique = true
+sparse = false

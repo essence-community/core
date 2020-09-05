@@ -1,0 +1,43 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert
+    kompose.version: 1.21.0 (992df58d8)
+  creationTimestamp: null
+  labels:
+    io.kompose.service: essence-backend-db
+  name: essence-backend-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: essence-backend-db
+  strategy: {}
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert
+        kompose.version: 1.21.0 (992df58d8)
+      creationTimestamp: null
+      labels:
+        io.kompose.service: essence-backend-db
+    spec:
+      containers:
+      - env:
+        - name: POSTGRES_DB
+          value: s_su
+        - name: POSTGRES_PASSWORD
+          value: s_su
+        - name: POSTGRES_USER
+          value: s_su
+        image: postgres:11-alpine
+        imagePullPolicy: ""
+        name: essence-backend-db
+        ports:
+        - containerPort: 5432
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+      volumes: null
+status: {}

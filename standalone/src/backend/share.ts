@@ -70,9 +70,10 @@ export function checkZip() {
 export async function CreateSQLUser(db: pg.Client, user: string, login = false, su = false) {
     try {
         await db.query(
-            `CREATE ROLE ${user} WITH ${login ? "" : "NO"}LOGIN ${
-                su ? "" : "NO"
-            }SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION;`,
+            `CREATE ROLE ${user} WITH ${login ? "" : "NO"}LOGIN ${ su ? 
+                "SUPERUSER INHERIT CREATEDB CREATEROLE NOREPLICATION" : 
+                "NOSUPERUSER INHERIT NOCREATEDB NOCREATEROLE NOREPLICATION" 
+            };`,
         );
     } catch (error) {
         if (error.code != 42710) {
