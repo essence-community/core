@@ -1,0 +1,8 @@
+[[data]]
+ck_id = "#GATE_NODE_NAME#"
+cv_ip = "127.0.0.1"
+[[data]]
+[data."$$indexCreated"]
+fieldName = "ck_id"
+unique = true
+sparse = false
