@@ -1,0 +1,83 @@
+[[data]]
+cv_name = "modulestorage"
+cv_description = "Место хранения модулей"
+ck_d_provider = "meta"
+ck_d_plugin = "modulestorage"
+cl_required = 0
+cl_default = 0
+ck_id = "moduleStorage:meta"
+cn_order = 1
+
+  [data.cct_params]
+  cvTypeStorage = "dir"
+  cvPath = "/opt/work_gate/module"
+
+[[data]]
+cv_name = "preparequery"
+cv_description = "Плагин преобразования запросов filter,sort"
+ck_d_provider = "authcore"
+ck_d_plugin = "PrepareQuery"
+cl_required = 1
+cl_default = 0
+cct_params = { }
+ck_id = "PrepareQuery:authcore"
+cn_order = 1
+
+[[data]]
+cv_name = "preparequery"
+cv_description = "Плагин преобразования запросов filter,sort"
+ck_d_provider = "meta"
+ck_d_plugin = "PrepareQuery"
+cl_required = 1
+cl_default = 0
+cct_params = { }
+ck_id = "PrepareQuery:meta"
+cn_order = 1
+
+[[data]]
+ck_id = "create_patch:authcore"
+cv_name = "create_patch"
+ck_d_provider = "all"
+ck_d_plugin = "patcher"
+cl_required = 0
+cn_order = 1
+cl_default = 0
+cv_description = "Создание патча для авторизации"
+
+  [data.cct_params]
+  cvTypeStorage = "dir"
+  cvPath = "/opt/work_gate/patch"
+
+[[data]]
+cv_name = "extractrow"
+cv_description = "Плагин распаковывания вложеного json"
+ck_d_provider = "authcore"
+ck_d_plugin = "JsonRowColumnExtractor"
+cl_required = 1
+cl_default = 0
+ck_id = "extractRow:authcore"
+cn_order = 2
+
+  [data.cct_params]
+  extractSingleColumn = true
+  columns = "json,result"
+
+[[data]]
+cv_name = "extractrow"
+cv_description = "Плагин распаковывания вложеного json"
+ck_d_provider = "meta"
+ck_d_plugin = "JsonRowColumnExtractor"
+cl_required = 1
+cl_default = 0
+ck_id = "extractRow:meta"
+cn_order = 2
+
+  [data.cct_params]
+  extractSingleColumn = true
+  columns = "json,result"
+
+[[data]]
+[data."$$indexCreated"]
+fieldName = "ck_id"
+unique = true
+sparse = false
