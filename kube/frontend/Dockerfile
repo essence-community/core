@@ -1,6 +1,5 @@
 FROM node:12
 
-ENV VERSION_ESSENCE_CORE=2.6.1
 ENV ESSENCE_BACKEND_HOST=essence_backend
 ENV ESSENCE_BACKEND_PORT=8080
 ENV REACT_APP_MODULE_URL=/module
@@ -20,23 +19,35 @@ RUN export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAM
     wget https://nginx.org/keys/nginx_signing.key && \
     apt-key add nginx_signing.key && \
     apt update && \
-    apt -y install git nginx && \
+    apt -y install git nginx --no-install-recommends && \
     apt autoremove && \
     mkdir -p /opt/module && \
-    mkdir -p /opt/front && \
-    cd \opt && \
-    git clone https://github.com/essence-community/core-frontend.git && \
+    mkdir -p /opt/front 
+
+ENV VERSION_ESSENCE_CORE=2.6.3
+
+RUN cd \opt && \
+    git clone https://github.com/essence-community/core-frontend.git --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-frontend && \
-    git checkout $VERSION_ESSENCE_CORE && \
     export "REACT_APP_COMMIT_ID=`git log -1 --pretty=format:%h`" && \
     export "REACT_APP_BRANCH_DATE_TIME=`date +'%F %H:%M:%S'`" && \
-    yarn && \
+    yarn install && \
     yarn build && \
     cp -r -v /opt/core-frontend/build/* /opt/front && \
+    yarn cache clean -all && \
     rm -rf /opt/core-frontend && \
-    chown -R www-data: /opt/front
+    chown -R www-data: /opt/front && \
+    apt-get clean autoclean && \
+    apt-get autoremove --yes && \
+    apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
+    apt-get purge -y git && \
+    rm -rf /var/lib/{apt,dpkg,cache,log}/  && \
+    rm -rf /usr/local/share/.cache && \
+    rm -rf /usr/local/lib/node_modules
 
 COPY ./daemon.sh /opt/daemon.sh
+
+RUN  which nginx
 
 RUN  chmod +x /opt/daemon.sh
 
