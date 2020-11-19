@@ -11,7 +11,6 @@ ENV REACT_APP_SHOW_DEV_TOOLS=false
 ENV REACT_APP_WS_BASE_URL=/notification
 ENV REACT_APP_FILE_URL=/assets
 ENV REACT_APP_SETTINGS="/api?action=sql&query=MTGetSysSettings&js=true"
-ENV VERSION_ESSENCE_CORE=2.6.3
 
 RUN export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAME/ {print $2}') && \
     apt update && \
@@ -23,8 +22,11 @@ RUN export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAM
     apt -y install git nginx --no-install-recommends && \
     apt autoremove && \
     mkdir -p /opt/module && \
-    mkdir -p /opt/front && \
-    cd \opt && \
+    mkdir -p /opt/front 
+
+ENV VERSION_ESSENCE_CORE=2.6.3
+
+RUN cd \opt && \
     git clone https://github.com/essence-community/core-frontend.git --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-frontend && \
     export "REACT_APP_COMMIT_ID=`git log -1 --pretty=format:%h`" && \

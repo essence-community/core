@@ -8,7 +8,6 @@ ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
 ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
 ENV GATE_NODE_NAME=essence-gate
-ENV VERSION_ESSENCE_CORE=2.6.3
 
 RUN groupadd --gid 1001 ungate && \
     useradd --uid 1001 --gid ungate --shell /bin/bash --create-home ungate && \
@@ -23,8 +22,11 @@ RUN groupadd --gid 1001 ungate && \
     mkdir -p /opt/work_gate/logs && \
     mkdir -p /opt/work_gate/module && \
     mkdir -p /opt/work_gate/patch && \
-    mkdir -p /opt/work_gate/tmp && \
-    cd /opt && \
+    mkdir -p /opt/work_gate/tmp
+
+ENV VERSION_ESSENCE_CORE=2.6.4
+
+RUN cd /opt && \
     git clone https://github.com/essence-community/core-backend.git --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-backend && \
     yarn install --force && \
@@ -37,6 +39,7 @@ RUN groupadd --gid 1001 ungate && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
+    apt-get purge -y git && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 COPY ./config /opt/configs_sample
