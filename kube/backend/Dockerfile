@@ -39,7 +39,6 @@ RUN cd /opt && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
-    apt-get purge -y git && \
     rm -rf /var/lib/{apt,dpkg,cache,log}/
 
 COPY ./config /opt/configs_sample
