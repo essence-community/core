@@ -27,7 +27,7 @@ RUN groupadd --gid 1001 ungate && \
 ENV VERSION_ESSENCE_CORE=2.6.4
 
 RUN cd /opt && \
-    git clone https://github.com/essence-community/core-backend.git --depth 1 --branch $VERSION_ESSENCE_CORE && \
+    git clone https://github.com/essence-community/core-backend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-backend && \
     yarn install --force && \
     yarn build && \

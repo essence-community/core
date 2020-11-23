@@ -27,7 +27,7 @@ RUN export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAM
 ENV VERSION_ESSENCE_CORE=2.6.4
 
 RUN cd \opt && \
-    git clone https://github.com/essence-community/core-frontend.git --depth 1 --branch $VERSION_ESSENCE_CORE && \
+    git clone https://github.com/essence-community/core-frontend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-frontend && \
     export "REACT_APP_COMMIT_ID=`git log -1 --pretty=format:%h`" && \
     export "REACT_APP_BRANCH_DATE_TIME=`date +'%F %H:%M:%S'`" && \
