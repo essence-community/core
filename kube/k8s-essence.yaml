@@ -22,7 +22,7 @@ metadata:
   labels:
     type: local
 spec:
-  storageClassName: manual
+  storageClassName: module-essence
   capacity:
     storage: 5Gi
   accessModes:
@@ -35,14 +35,45 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   namespace: essence
-  name: essence-store-module
+  name: essence-store-module-pvc
 spec:
   accessModes:
     - ReadWriteOnce
   resources:
     requests:
       storage: 5Gi
-  storageClassName: manual
+  storageClassName: module-essence
+status: {}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: essence-store-pg-data-pv
+  namespace: essence
+  labels:
+    type: local
+spec:
+  storageClassName: pg-data
+  capacity:
+    storage: 5Gi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/mnt/pg_data"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: essence
+  name: essence-store-pg-data-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 5Gi
+  storageClassName: pg-data
 status: {}
 ---
 apiVersion: apps/v1
@@ -79,15 +110,23 @@ spec:
                 secretKeyRef:
                   name: essence-secret
                   key: super_admin_user
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
           image: postgres:11-alpine
           imagePullPolicy: ""
           name: essence-backend-db
           ports:
             - containerPort: 5432
           resources: {}
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: essence-store-pg-data-pvc
       restartPolicy: Always
       serviceAccountName: ""
-      volumes: null
+      volumes:
+        - name: essence-store-pg-data-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-pg-data-pvc
 status: {}
 ---
 apiVersion: v1
@@ -154,13 +193,13 @@ spec:
             - containerPort: 8080
           volumeMounts:
             - mountPath: /opt/work_gate/module
-              name: essence-store-module
+              name: essence-store-module-pvc
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: essence-store-module
+        - name: essence-store-module-pvc
           persistentVolumeClaim:
-            claimName: essence-store-module
+            claimName: essence-store-module-pvc
 status: {}
 ---
 apiVersion: v1
@@ -210,13 +249,13 @@ spec:
           resources: {}
           volumeMounts:
             - mountPath: /opt/module
-              name: essence-store-module
+              name: essence-store-module-pvc
       restartPolicy: Always
       serviceAccountName: ""
       volumes:
-        - name: essence-store-module
+        - name: essence-store-module-pvc
           persistentVolumeClaim:
-            claimName: essence-store-module
+            claimName: essence-store-module-pvc
 status: {}
 ---
 apiVersion: v1

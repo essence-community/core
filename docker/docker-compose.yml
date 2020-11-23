@@ -58,11 +58,13 @@ services:
       - "9021:5432"
     volumes:
       - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
+      - "./dist/data-pg:/var/lib/postgresql/data"
     environment:
       POSTGRES_PASSWORD: s_su
       POSTGRES_USER: s_su
       POSTGRES_DB: s_su
       POSTGRES_CORE_DB: core
+      PGDATA: /var/lib/postgresql/data/pgdata
 
   server:
     build: ./server
