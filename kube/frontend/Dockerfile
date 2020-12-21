@@ -24,7 +24,7 @@ RUN export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAM
     mkdir -p /opt/module && \
     mkdir -p /opt/front 
 
-ENV VERSION_ESSENCE_CORE=2.6.4
+ENV VERSION_ESSENCE_CORE=2.6.5
 
 RUN cd \opt && \
     git clone https://github.com/essence-community/core-frontend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \
