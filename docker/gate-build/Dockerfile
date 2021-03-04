@@ -4,6 +4,7 @@ RUN apt-get update && \
     apt-get install git
 
 CMD mkdir -p /dist/ungate && \
+    rm -rf /usr/local/share/.cache && \
     cd /core/backend && \
     git clean -fdx && \
     yarn install && \
