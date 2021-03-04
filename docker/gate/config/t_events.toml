@@ -6,7 +6,9 @@ ck_id = "localization"
   [data.cct_params]
   poolMin = 1
   poolMax = 100
-  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
+  user = "s_mc"
+  password = "s_mc"
+  connectString = "postgres://postgres:5432/core"
 
 [[data]]
 cv_description = "Оповещение meta"
@@ -17,7 +19,9 @@ ck_id = "meta"
   authProvider = "auth"
   poolMin = 1
   poolMax = 100
-  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
+  user = "s_mc"
+  password = "s_mc"
+  connectString = "postgres://postgres:5432/core"
 
 [[data]]
 cv_description = "Семафор meta"
@@ -27,7 +31,9 @@ ck_id = "semaphore"
   [data.cct_params]
   poolMin = 1
   poolMax = 100
-  connectString = "postgres://s_mc:s_mc@postgres:5432/core"
+  user = "s_mc"
+  password = "s_mc"
+  connectString = "postgres://postgres:5432/core"
 [[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
