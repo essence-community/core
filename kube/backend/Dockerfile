@@ -24,7 +24,7 @@ RUN groupadd --gid 1001 ungate && \
     mkdir -p /opt/work_gate/patch && \
     mkdir -p /opt/work_gate/tmp
 
-ENV VERSION_ESSENCE_CORE=2.6.5
+ENV VERSION_ESSENCE_CORE=dev
 
 RUN cd /opt && \
     git clone https://github.com/essence-community/core-backend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \

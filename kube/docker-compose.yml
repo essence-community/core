@@ -1,7 +1,7 @@
 version: '3'
 services:
   essence_backend:
-    image: "essencecommunity/essence-backend:2.6.5"
+    image: "essencecommunity/essence-backend:dev"
     volumes:
       - './dist/module:/opt/work_gate/module'
     depends_on:
@@ -19,13 +19,15 @@ services:
     image: "postgres:11-alpine"
     ports:
       - "10021:5432"
+    volumes:
+      - "./dist/data-pg:/var/lib/postgresql/data"
     environment:
       POSTGRES_PASSWORD: s_su
       POSTGRES_USER: s_su
       POSTGRES_DB: s_su
 
   essence_frontend:
-    image: "essencecommunity/essence-frontend:2.6.5"
+    image: "essencecommunity/essence-frontend:dev"
     depends_on:
       - essence_backend
     volumes:
