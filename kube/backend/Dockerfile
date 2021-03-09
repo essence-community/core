@@ -25,7 +25,8 @@ RUN groupadd --gid $GID ungate && \
     mkdir -p /opt/work_gate/logs && \
     mkdir -p /opt/work_gate/module && \
     mkdir -p /opt/work_gate/patch && \
-    mkdir -p /opt/work_gate/tmp
+    mkdir -p /opt/work_gate/tmp && \
+    mkdir -p /opt/work_dbms
 
 ENV VERSION_ESSENCE_CORE=dev
 
@@ -35,8 +36,15 @@ RUN cd /opt && \
     yarn install --force && \
     yarn build && \
     cp -r -v /opt/core-backend/bin/* /opt/work_gate/ungate/. && \
+    cp -r -v /opt/core-backend/dbms /opt/work_dbms/dbms && \
+    cp -r -v /opt/core-backend/VERSION /opt/work_dbms/VERSION && \
+    cp -r -v /opt/core-backend/dbms_auth /opt/work_dbms/dbms_auth && \
+    cp -r -v /opt/core-backend/dbms/s_mt/version.sql /opt/work_dbms/version.sql && \
+    git log -1 --pretty=format:%h > /opt/work_dbms/MIN_HASH && \
+    git log -1 --pretty=format:%H > /opt/work_dbms/HASH && \
     cd /opt/core-backend && git clean -fdx && \
     cd /opt/work_gate/ungate && \
+    rm -rf /opt/core-backend && \
     yarn install --force && \
     chown -R $UID:$GID /opt/work_gate && \
     apt-get clean autoclean && \
@@ -51,8 +59,8 @@ COPY ./daemon.sh /opt/daemon.sh
 RUN cd /opt/check_install && \
     yarn install --force && \
     chown -R ungate: /opt/check_install && \
-    chown -R ungate: /opt/core-backend && \
-    chmod +x /opt/core-backend/dbms/liquibase/liquibase && \
+    chown -R ungate: /opt/work_dbms && \
+    chmod +x /opt/work_dbms/dbms/liquibase/liquibase && \
     chmod +x /opt/daemon.sh && \
     chmod +x /opt/check_install/check_install.sh && \
     yarn cache clean -all && \
