@@ -9,8 +9,11 @@ ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
 ENV GATE_NODE_NAME=essence-gate
 
-RUN groupadd --gid 1001 ungate && \
-    useradd --uid 1001 --gid ungate --shell /bin/bash --create-home ungate && \
+ARG UID=1001
+ARG GID=1001
+
+RUN groupadd --gid $GID ungate && \
+    useradd --uid $UID --gid $GID --shell /bin/bash --create-home ungate && \
     export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAME/ {print $2}') && \
     echo "deb http://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
     wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
@@ -35,7 +38,7 @@ RUN cd /opt && \
     cd /opt/core-backend && git clean -fdx && \
     cd /opt/work_gate/ungate && \
     yarn install --force && \
-    chown -R ungate: /opt/work_gate && \
+    chown -R $UID:$GID /opt/work_gate && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
     apt-get purge -y --auto-remove -o APT::AutoRemove::RecommendsImportant=false && \
@@ -55,7 +58,7 @@ RUN cd /opt/check_install && \
     yarn cache clean -all && \
     rm -rf /usr/local/share/.cache
 
-USER ungate
+USER $UID
 
 WORKDIR /opt/work_gate/ungate
 

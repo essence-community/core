@@ -185,7 +185,7 @@ spec:
               value: $(ESSENCE_BACKEND_DB_SERVICE_HOST)
             - name: POSTGRES_PORT
               value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
-          image: essencecommunity/essence-backend:2.6.5
+          image: essencecommunity/essence-backend:dev
           imagePullPolicy: ""
           name: essence-backend
           resources: {}
@@ -241,11 +241,11 @@ spec:
               value: $(ESSENCE_BACKEND_SERVICE_HOST)
             - name: ESSENCE_BACKEND_PORT
               value: $(ESSENCE_BACKEND_SERVICE_PORT)
-          image: essencecommunity/essence-frontend:2.6.5
+          image: essencecommunity/essence-frontend:dev
           imagePullPolicy: ""
           name: essence-frontend
           ports:
-            - containerPort: 80
+            - containerPort: 8080
           resources: {}
           volumeMounts:
             - mountPath: /opt/module
@@ -265,9 +265,9 @@ metadata:
   name: essence-frontend
 spec:
   ports:
-    - name: "80"
-      port: 80
-      targetPort: 80
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
       nodePort: 30020
   selector:
     io.kompose.service: essence-frontend

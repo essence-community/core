@@ -4,6 +4,7 @@ services:
     image: "essencecommunity/essence-backend:dev"
     volumes:
       - './dist/module:/opt/work_gate/module'
+      - './dist/config:/opt/work_gate/config'
     depends_on:
       - essence_backend_db
     environment:
@@ -36,6 +37,6 @@ services:
       ESSENCE_BACKEND_HOST: essence_backend
       ESSENCE_BACKEND_PORT: 8080
     ports:
-      - "10020:80"
+      - "10020:8080"
     links:
       - essence_backend
