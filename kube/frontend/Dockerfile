@@ -37,14 +37,14 @@ RUN cd \opt && \
 
 FROM nginxinc/nginx-unprivileged:latest-amd64
 
+ARG UID=101
+
 USER root
 
 RUN mkdir -p /opt/module && \
     mkdir -p /opt/front && \
     chown $UID:0 /opt/module && \
     chown $UID:0 /opt/front
-
-USER $UID
 
 COPY --from=builder /opt/front /opt/front
 
@@ -53,5 +53,7 @@ COPY ./daemon.sh /opt/daemon.sh
 RUN  chmod +x /opt/daemon.sh
 
 COPY ./nginx.conf /etc/nginx/nginx.conf.sample
+
+USER $UID
 
 CMD /opt/daemon.sh
