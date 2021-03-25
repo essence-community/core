@@ -1,25 +1,12 @@
-FROM node:12
-
-ENV TZ=Europe/Moscow
-ENV LOGGER_CONF=/opt/work_gate/config/logger.json
-ENV GATE_CLUSTER_NUM=4
-ENV PROPERTY_DIR=/opt/work_gate/config
-ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
-ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
-ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
-ENV GATE_NODE_NAME=essence-gate
+FROM node:12 as builder
 
 ARG UID=1001
 ARG GID=1001
 
 RUN groupadd --gid $GID ungate && \
     useradd --uid $UID --gid $GID --shell /bin/bash --create-home ungate && \
-    export VERSION_CODENAME=$(cat /etc/os-release | awk -F "=" '/VERSION_CODENAME/ {print $2}') && \
-    echo "deb http://apt.postgresql.org/pub/repos/apt $VERSION_CODENAME-pgdg main" > /etc/apt/sources.list.d/pgdg.list && \
-    wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-key add - && \
     apt update && \
-    apt -y install git openjdk-8-jre --no-install-recommends && \
-    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone && \
+    apt -y install git --no-install-recommends && \
     mkdir -p /opt/work_gate/ungate && \
     mkdir -p /opt/work_gate/config && \
     mkdir -p /opt/work_gate/logs && \
@@ -42,9 +29,8 @@ RUN cd /opt && \
     cp -r -v /opt/core-backend/dbms/s_mt/version.sql /opt/work_dbms/version.sql && \
     git log -1 --pretty=format:%h > /opt/work_dbms/MIN_HASH && \
     git log -1 --pretty=format:%H > /opt/work_dbms/HASH && \
-    cd /opt/core-backend && git clean -fdx && \
-    cd /opt/work_gate/ungate && \
     rm -rf /opt/core-backend && \
+    cd /opt/work_gate/ungate && \
     yarn install --force && \
     chown -R $UID:$GID /opt/work_gate && \
     apt-get clean autoclean && \
@@ -65,6 +51,35 @@ RUN cd /opt/check_install && \
     chmod +x /opt/check_install/check_install.sh && \
     yarn cache clean -all && \
     rm -rf /usr/local/share/.cache
+
+FROM node:12-alpine3.12
+
+ARG UID=1001
+ARG GID=1001
+
+ENV TZ=Europe/Moscow
+ENV LOGGER_CONF=/opt/work_gate/config/logger.json
+ENV GATE_CLUSTER_NUM=4
+ENV PROPERTY_DIR=/opt/work_gate/config
+ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
+ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
+ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
+ENV GATE_NODE_NAME=essence-gate
+ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
+
+RUN adduser -u $UID -G $GID -s /bin/bash --disabled-password ungate; \
+    apk upgrade --update-cache; \
+    apk add tzdata; \
+    apk add openjdk8-jre; \
+    apk add bash; \
+    ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \
+    rm -rf /tmp/* /var/cache/apk/*
+
+COPY --from=builder --chown=$UID:$GID /opt/work_dbms /opt/work_dbms
+COPY --from=builder --chown=$UID:$GID /opt/check_install /opt/check_install
+COPY --from=builder --chown=$UID:$GID /opt/configs_sample /opt/configs_sample
+COPY --from=builder /opt/daemon.sh /opt/daemon.sh
+COPY --from=builder --chown=$UID:$GID /opt/work_gate /opt/work_gate
 
 USER $UID
 

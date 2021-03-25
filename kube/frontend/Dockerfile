@@ -35,7 +35,7 @@ RUN cd \opt && \
     rm -rf /usr/local/share/.cache && \
     rm -rf /usr/local/lib/node_modules
 
-FROM nginxinc/nginx-unprivileged:latest-amd64
+FROM nginxinc/nginx-unprivileged:stable-alpine
 
 ARG UID=101
 
@@ -48,12 +48,15 @@ RUN mkdir -p /opt/module && \
 
 COPY --from=builder /opt/front /opt/front
 
-COPY ./daemon.sh /opt/daemon.sh
+COPY ./daemon.sh /usr/local/bin/daemon.sh
 
-RUN  chmod +x /opt/daemon.sh
+RUN apk upgrade --update-cache; \
+    apk add bash; \
+    rm -rf /tmp/* /var/cache/apk/*; \
+    chmod +x /usr/local/bin/daemon.sh
 
 COPY ./nginx.conf /etc/nginx/nginx.conf.sample
 
 USER $UID
 
-CMD /opt/daemon.sh
+CMD /usr/local/bin/daemon.sh
