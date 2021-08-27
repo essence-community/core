@@ -185,7 +185,7 @@ spec:
               value: $(ESSENCE_BACKEND_DB_SERVICE_HOST)
             - name: POSTGRES_PORT
               value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
-          image: essencecommunity/essence-backend:2.6.5
+          image: essencecommunity/essence-backend:2.7.0
           imagePullPolicy: ""
           name: essence-backend
           resources: {}
@@ -241,7 +241,7 @@ spec:
               value: $(ESSENCE_BACKEND_SERVICE_HOST)
             - name: ESSENCE_BACKEND_PORT
               value: $(ESSENCE_BACKEND_SERVICE_PORT)
-          image: essencecommunity/essence-frontend:2.6.5
+          image: essencecommunity/essence-frontend:2.7.0
           imagePullPolicy: ""
           name: essence-frontend
           ports:
