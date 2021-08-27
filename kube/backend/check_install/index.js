@@ -124,7 +124,7 @@ async function checkVersionUpdateSQLDatabase() {
             user: process.env.POSTGRES_ADMIN_PASSWORD,
         });
         await db.connect();
-        const versionApp = fs.readFileSync('/opt/core-backend/VERSION').toString().trim()
+        const versionApp = fs.readFileSync('/opt/work_dbms/VERSION').toString().trim()
         const res = await db.query(
             "SELECT EXISTS (\n" + 
             "   SELECT FROM information_schema.tables \n" + 
@@ -139,7 +139,7 @@ async function checkVersionUpdateSQLDatabase() {
 
         const {rows} = await db.query("SELECT cv_value from s_mt.t_sys_setting where ck_id = 'core_db_major_version'");
 
-        return new Promise((resolve, reject) => {
+        return new Promise((resolve) => {
             const [{cv_value: cvValue}] = rows;
 
             if (!isEmpty(cvValue)) {
@@ -213,21 +213,11 @@ const init = async () => {
         await CreateSQLDatabase(db, "core_auth", "s_su");
     }
     if (await checkVersionUpdateSQLDatabase()) {
-        const versionApp = fs.readFileSync('/opt/core-backend/VERSION').toString().trim()
-        const { stdout: minCommitBackend } = await cmdExec('git log -1 --pretty=format:%h', {
-            cwd: '/opt/core-backend',
-            env: process.env
-        })
-        const { stdout: fullCommitBackend } = await cmdExec('git log -1 --pretty=format:%H', {
-            cwd: '/opt/core-backend',
-            env: process.env
-        })
-        await cmdExec('git checkout -f -- dbms/s_mt/version.sql', {
-            cwd: '/opt/core-backend',
-            env: process.env
-        })
+        const versionApp = fs.readFileSync('/opt/work_dbms/VERSION').toString().trim()
+        const minCommitBackend = fs.readFileSync('/opt/work_dbms/MIN_HASH').toString().trim()
+        const fullCommitBackend = fs.readFileSync('/opt/work_dbms/HASH').toString().trim()
         let versionstr = fs
-            .readFileSync('/opt/core-backend/dbms/s_mt/version.sql', { encoding: 'utf-8' })
+            .readFileSync('/opt/work_dbms/version.sql', { encoding: 'utf-8' })
             .toString()
         
         versionstr += '\n--changeset builder:update_url dbms:postgresql runOnChange:true\n'
@@ -239,36 +229,36 @@ const init = async () => {
         versionstr += `update s_mt.t_sys_setting set cv_value='${versionApp}' where ck_id='core_db_major_version';\n`
         versionstr +=
                 "update s_mt.t_sys_setting set cv_value=to_char(CURRENT_TIMESTAMP, 'dd.MM.YYYY HH24:mm:ss') where ck_id='core_db_deployment_date';\n"
-        fs.writeFileSync('/opt/core-backend/dbms/s_mt/version.sql', versionstr, {
+        fs.writeFileSync('/opt/work_dbms/dbms/s_mt/version.sql', versionstr, {
             encoding: 'utf-8'
         })
         const liquibaseParams = `--username=${process.env.POSTGRES_ADMIN_USER || "s_su"} --password=${
             process.env.POSTGRES_ADMIN_PASSWORD || "s_su"
         } --driver=org.postgresql.Driver update`;
         await cmdExec(
-            `/opt/core-backend/dbms/liquibase/liquibase --changeLogFile=db.changelog.xml --url=jdbc:postgresql://${
+            `/opt/work_dbms/dbms/liquibase/liquibase --changeLogFile=db.changelog.xml --url=jdbc:postgresql://${
                 process.env.POSTGRES_HOST
             }:${process.env.POSTGRES_PORT || "5432"}/core_meta ${liquibaseParams}`,
             {
-                cwd: '/opt/core-backend/dbms',
+                cwd: '/opt/work_dbms/dbms',
                 env: process.env,
             }
         );
         await cmdExec(
-            `/opt/core-backend/dbms/liquibase/liquibase --changeLogFile=db.changelog.meta.xml --url=jdbc:postgresql://${
+            `/opt/work_dbms/dbms/liquibase/liquibase --changeLogFile=db.changelog.meta.xml --url=jdbc:postgresql://${
                 process.env.POSTGRES_HOST
             }:${process.env.POSTGRES_PORT || "5432"}/core_meta ${liquibaseParams}`,
             {
-                cwd: '/opt/core-backend/dbms_auth',
+                cwd: '/opt/work_dbms/dbms_auth',
                 env: process.env,
             }
         );
         await cmdExec(
-            `/opt/core-backend/dbms/liquibase/liquibase --changeLogFile=db.changelog.auth.xml --url=jdbc:postgresql://${
+            `/opt/work_dbms/dbms/liquibase/liquibase --changeLogFile=db.changelog.auth.xml --url=jdbc:postgresql://${
                 process.env.POSTGRES_HOST
             }:${process.env.POSTGRES_PORT || "5432"}/core_auth ${liquibaseParams}`,
             {
-                cwd: '/opt/core-backend/dbms_auth',
+                cwd: '/opt/work_dbms/dbms_auth',
                 env: process.env,
             }
         );
