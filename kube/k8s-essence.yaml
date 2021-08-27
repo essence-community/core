@@ -43,7 +43,36 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: module-essence
-status: {}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: essence-store-config-pv
+  namespace: essence
+  labels:
+    type: local
+spec:
+  storageClassName: config-essence
+  capacity:
+    storage: 200Mi
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Retain
+  hostPath:
+    path: "/mnt/config_essence"
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: essence
+  name: essence-store-config-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 200Mi
+  storageClassName: config-essence
 ---
 apiVersion: v1
 kind: PersistentVolume
@@ -74,7 +103,6 @@ spec:
     requests:
       storage: 5Gi
   storageClassName: pg-data
-status: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -86,7 +114,6 @@ spec:
   selector:
     matchLabels:
       io.kompose.service: essence-backend-db
-  strategy: {}
   template:
     metadata:
       namespace: essence
@@ -117,17 +144,14 @@ spec:
           name: essence-backend-db
           ports:
             - containerPort: 5432
-          resources: {}
           volumeMounts:
             - mountPath: /var/lib/postgresql/data
               name: essence-store-pg-data-pvc
       restartPolicy: Always
-      serviceAccountName: ""
       volumes:
         - name: essence-store-pg-data-pvc
           persistentVolumeClaim:
             claimName: essence-store-pg-data-pvc
-status: {}
 ---
 apiVersion: v1
 kind: Service
@@ -143,8 +167,6 @@ spec:
   selector:
     io.kompose.service: essence-backend-db
   type: LoadBalancer
-status:
-  loadBalancer: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -186,21 +208,23 @@ spec:
             - name: POSTGRES_PORT
               value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
           image: essencecommunity/essence-backend:2.7.0
-          imagePullPolicy: ""
+          imagePullPolicy: "Always"
           name: essence-backend
-          resources: {}
           ports:
             - containerPort: 8080
           volumeMounts:
             - mountPath: /opt/work_gate/module
               name: essence-store-module-pvc
+            - mountPath: /opt/work_gate/config
+              name: essence-store-config-pvc
       restartPolicy: Always
-      serviceAccountName: ""
       volumes:
         - name: essence-store-module-pvc
           persistentVolumeClaim:
             claimName: essence-store-module-pvc
-status: {}
+        - name: essence-store-config-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-config-pvc
 ---
 apiVersion: v1
 kind: Service
@@ -214,8 +238,6 @@ spec:
       targetPort: 8080
   selector:
     io.kompose.service: essence-backend
-status:
-  loadBalancer: {}
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -242,21 +264,18 @@ spec:
             - name: ESSENCE_BACKEND_PORT
               value: $(ESSENCE_BACKEND_SERVICE_PORT)
           image: essencecommunity/essence-frontend:2.7.0
-          imagePullPolicy: ""
+          imagePullPolicy: "Always"
           name: essence-frontend
           ports:
-            - containerPort: 80
-          resources: {}
+            - containerPort: 8080
           volumeMounts:
             - mountPath: /opt/module
               name: essence-store-module-pvc
       restartPolicy: Always
-      serviceAccountName: ""
       volumes:
         - name: essence-store-module-pvc
           persistentVolumeClaim:
             claimName: essence-store-module-pvc
-status: {}
 ---
 apiVersion: v1
 kind: Service
@@ -265,12 +284,10 @@ metadata:
   name: essence-frontend
 spec:
   ports:
-    - name: "80"
-      port: 80
-      targetPort: 80
+    - name: "8080"
+      port: 8080
+      targetPort: 8080
       nodePort: 30020
   selector:
     io.kompose.service: essence-frontend
   type: LoadBalancer
-status:
-  loadBalancer: {}

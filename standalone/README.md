@@ -6,7 +6,7 @@
 
 ## Start dev mode
 ```
-yarn && yarn build:watch & yarn start
+yarn && yarn build:package && yarn start
 ```
 ## Build full package
 ```
