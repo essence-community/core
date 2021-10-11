@@ -4,6 +4,36 @@ metadata:
   name: essence
 ---
 apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: essence-backend-service-account
+  namespace: essence
+---
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: essence-backend-pod-reader
+  namespace: essence
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: essence-role-view
+  namespace: essence
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: essence-backend-pod-reader
+subjects:
+- kind: ServiceAccount
+  name: essence-backend-service-account
+  namespace: essence
+---
+apiVersion: v1
 kind: Secret
 metadata:
   name: essence-secret
@@ -113,12 +143,12 @@ spec:
   replicas: 1
   selector:
     matchLabels:
-      io.kompose.service: essence-backend-db
+      app: essence-backend-db
   template:
     metadata:
       namespace: essence
       labels:
-        io.kompose.service: essence-backend-db
+        app: essence-backend-db
     spec:
       containers:
         - env:
@@ -162,10 +192,8 @@ spec:
   ports:
     - name: "5432"
       port: 5432
-      targetPort: 5432
-      nodePort: 30021
   selector:
-    io.kompose.service: essence-backend-db
+    app: essence-backend-db
   type: LoadBalancer
 ---
 apiVersion: apps/v1
@@ -174,18 +202,21 @@ metadata:
   namespace: essence
   name: essence-backend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      io.kompose.service: essence-backend
+      app: essence-backend
   strategy:
     type: Recreate
   template:
     metadata:
       namespace: essence
       labels:
-        io.kompose.service: essence-backend
+        app: essence-backend
     spec:
+      serviceAccountName: essence-backend-service-account
+      securityContext:
+        fsGroup: 1001
       containers:
         - env:
             - name: POSTGRES_ADMIN_DATABASE
@@ -207,11 +238,37 @@ spec:
               value: $(ESSENCE_BACKEND_DB_SERVICE_HOST)
             - name: POSTGRES_PORT
               value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
+            - name: KUBERNETES_NAMESPACE
+              value: essence
           image: essencecommunity/essence-backend:dev
           imagePullPolicy: "Always"
           name: essence-backend
           ports:
             - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /kube/liveness
+              port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /kube/startup
+              port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /kube/readiness
+              port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - mountPath: /opt/work_gate/module
               name: essence-store-module-pvc
@@ -235,9 +292,8 @@ spec:
   ports:
     - name: "8080"
       port: 8080
-      targetPort: 8080
   selector:
-    io.kompose.service: essence-backend
+    app: essence-backend
 ---
 apiVersion: apps/v1
 kind: Deployment
@@ -245,18 +301,20 @@ metadata:
   namespace: essence
   name: essence-frontend
 spec:
-  replicas: 1
+  replicas: 2
   selector:
     matchLabels:
-      io.kompose.service: essence-frontend
+      app: essence-frontend
   strategy:
     type: Recreate
   template:
     metadata:
       namespace: essence
       labels:
-        io.kompose.service: essence-frontend
+        app: essence-frontend
     spec:
+      securityContext:
+          fsGroup: 101
       containers:
         - env:
             - name: ESSENCE_BACKEND_HOST
@@ -268,6 +326,30 @@ spec:
           name: essence-frontend
           ports:
             - containerPort: 8080
+          livenessProbe:
+            httpGet:
+              path: /liveness
+              port: 10080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+          startupProbe:
+            httpGet:
+              path: /startup
+              port: 10080
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 60
+          readinessProbe:
+            httpGet:
+              path: /readiness
+              port: 10080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
           volumeMounts:
             - mountPath: /opt/module
               name: essence-store-module-pvc
@@ -286,8 +368,23 @@ spec:
   ports:
     - name: "8080"
       port: 8080
-      targetPort: 8080
-      nodePort: 30020
   selector:
-    io.kompose.service: essence-frontend
+    app: essence-frontend
   type: LoadBalancer
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  namespace: essence
+  name: essence-frontend-ingress
+spec:
+  rules:
+  - http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: essence-frontend
+            port:
+              number: 8080
