@@ -13,6 +13,30 @@ ck_d_plugin = "CorePGContext"
     connectString = "postgres://#POSTGRES_HOST#:#POSTGRES_PORT#/core_meta"
 
 [[data]]
+ck_id = "kube"
+cv_path = "/kube/:probe"
+ck_d_plugin = "kubeprobe"
+cv_description = "Probes kube"
+
+  [data.cct_params]
+  enableCors = "1"
+
+    [data.cct_params.cors]
+    origin = "*"
+    methods = "GET,PUT,POST,DELETE"
+    preflightContinue = "0"
+    optionsSuccessStatus = 200
+
+    [data.cct_params.paramSession]
+    name = "essence.sid"
+    proxy = "1"
+    resave = "0"
+    rolling = "0"
+    saveUninitialized = "0"
+    unset = "keep"
+    typeStore = "nedb"
+
+[[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
 unique = true

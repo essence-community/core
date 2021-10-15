@@ -2,21 +2,22 @@ FROM node:14 AS builder
 
 ENV ESSENCE_BACKEND_HOST=essence_backend
 ENV ESSENCE_BACKEND_PORT=8080
-ENV REACT_APP_MODULE_URL=/module
+ARG REACT_APP_MODULE_URL=/module
 ENV REACT_APP_REQUEST=GATE
-ENV REACT_APP_BASE_URL=/api
-ENV PUBLIC_URL=/
-ENV REACT_APP_PUBLIC_URL=/
+ARG REACT_APP_BASE_URL=/api
+ARG PUBLIC_URL=/
+ENV REACT_APP_PUBLIC_URL=$PUBLIC_URL
 ENV REACT_APP_SHOW_DEV_TOOLS=false
-ENV REACT_APP_WS_BASE_URL=/notification
-ENV REACT_APP_FILE_URL=/assets
-ENV REACT_APP_SETTINGS="/api?action=sql&query=MTGetSysSettings&js=true"
+ARG REACT_APP_WS_BASE_URL=/notification
+ARG REACT_APP_FILE_URL=/assets
+ARG REACT_APP_SETTINGS="/setting.js"
 
 RUN apt -y install git --no-install-recommends
 
-ARG VERSION_ESSENCE_CORE=2.7.0
+ARG VERSION_ESSENCE_CORE=2.7.1
 
 RUN cd \opt && \
+    echo $VERSION_ESSENCE_CORE && \
     mkdir -p /opt/front && \
     git clone https://github.com/essence-community/core-frontend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-frontend && \
@@ -43,6 +44,8 @@ USER root
 
 RUN mkdir -p /opt/module && \
     mkdir -p /opt/front && \
+    mkdir -p /opt/healthz && \
+    echo "ready" >> /opt/healthz/readiness && \
     chown $UID:0 /opt/module && \
     chown $UID:0 /opt/front
 

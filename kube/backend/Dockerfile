@@ -15,9 +15,10 @@ RUN groupadd --gid $GID ungate && \
     mkdir -p /opt/work_gate/tmp && \
     mkdir -p /opt/work_dbms
 
-ARG VERSION_ESSENCE_CORE=2.7.0
+ARG VERSION_ESSENCE_CORE=2.7.1
 
 RUN cd /opt && \
+    echo $VERSION_ESSENCE_CORE && \
     git clone https://github.com/essence-community/core-backend.git --progress --depth 1 --branch $VERSION_ESSENCE_CORE && \
     cd /opt/core-backend && \
     yarn install --force && \
@@ -57,21 +58,18 @@ FROM node:14-alpine3.14
 ARG UID=1001
 ARG GID=1001
 
-ENV TZ=Europe/Moscow
+ARG TZ=Europe/Moscow
 ENV LOGGER_CONF=/opt/work_gate/config/logger.json
-ENV GATE_CLUSTER_NUM=4
+ARG GATE_CLUSTER_NUM=4
 ENV PROPERTY_DIR=/opt/work_gate/config
 ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
 ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
-ENV GATE_NODE_NAME=essence-gate
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
 
 RUN adduser -u $UID -G $GID -s /bin/bash --disabled-password ungate; \
     apk upgrade --update-cache; \
-    apk add tzdata; \
-    apk add openjdk8-jre; \
-    apk add bash; \
+    apk add bash openjdk8-jre tzdata; \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \
     rm -rf /tmp/* /var/cache/apk/*
 
