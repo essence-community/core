@@ -1,7 +1,7 @@
 version: '3'
 services:
   essence_backend:
-    image: "essencecommunity/essence-backend:2.7.0"
+    image: "essencecommunity/essence-backend:2.7.1"
     volumes:
       - './dist/module:/opt/work_gate/module'
       - './dist/config:/opt/work_gate/config'
@@ -28,7 +28,7 @@ services:
       POSTGRES_DB: s_su
 
   essence_frontend:
-    image: "essencecommunity/essence-frontend:2.7.0"
+    image: "essencecommunity/essence-frontend:2.7.1"
     depends_on:
       - essence_backend
     volumes:
