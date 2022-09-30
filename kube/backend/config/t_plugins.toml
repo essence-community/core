@@ -77,6 +77,17 @@ cn_order = 2
   columns = "json,result"
 
 [[data]]
+cv_name = "printjasperserver"
+cn_order = "100"
+cct_params = { }
+ck_d_plugin = "gridtoexcel"
+cl_required = 0
+ck_d_provider = "all"
+cv_description = "Печать в Excel"
+ck_id = "PrintJasperServer:all"
+cl_default = 0
+
+[[data]]
 [data."$$indexCreated"]
 fieldName = "ck_id"
 unique = true

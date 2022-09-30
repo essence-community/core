@@ -240,7 +240,7 @@ spec:
               value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
             - name: KUBERNETES_NAMESPACE
               value: essence
-          image: essencecommunity/essence-backend:dev
+          image: essencecommunity/essence-backend:2.7.1
           imagePullPolicy: "Always"
           name: essence-backend
           ports:
@@ -321,7 +321,7 @@ spec:
               value: $(ESSENCE_BACKEND_SERVICE_HOST)
             - name: ESSENCE_BACKEND_PORT
               value: $(ESSENCE_BACKEND_SERVICE_PORT)
-          image: essencecommunity/essence-frontend:dev
+          image: essencecommunity/essence-frontend:2.7.1
           imagePullPolicy: "Always"
           name: essence-frontend
           ports:
