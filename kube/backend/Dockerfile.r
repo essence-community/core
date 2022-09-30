@@ -15,7 +15,7 @@ RUN groupadd --gid $GID ungate && \
     mkdir -p /opt/work_gate/tmp && \
     mkdir -p /opt/work_dbms
 
-ARG VERSION_ESSENCE_CORE=2.7.1
+ARG VERSION_ESSENCE_CORE=dev
 
 RUN cd /opt && \
     echo $VERSION_ESSENCE_CORE && \
@@ -32,7 +32,7 @@ RUN cd /opt && \
     git log -1 --pretty=format:%H > /opt/work_dbms/HASH && \
     rm -rf /opt/core-backend && \
     cd /opt/work_gate/ungate && \
-    yarn install --production=true --force && \
+    yarn install --force && \
     chown -R $UID:$GID /opt/work_gate && \
     apt-get clean autoclean && \
     apt-get autoremove --yes && \
@@ -44,7 +44,7 @@ COPY ./check_install /opt/check_install
 COPY ./daemon.sh /opt/daemon.sh
 
 RUN cd /opt/check_install && \
-    yarn install --production=true --force && \
+    yarn install --force && \
     chown -R ungate: /opt/check_install && \
     chown -R ungate: /opt/work_dbms && \
     chmod +x /opt/work_dbms/dbms/liquibase/liquibase && \
@@ -67,7 +67,7 @@ ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
 
-RUN adduser -u $UID -s /bin/bash --disabled-password ungate; \
+RUN adduser -u $UID -G $GID -s /bin/bash --disabled-password ungate; \
     apk upgrade --update-cache; \
     apk add bash openjdk8-jre tzdata; \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \

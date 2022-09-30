@@ -16,7 +16,6 @@ ck_d_plugin = "CorePgNotification"
 ck_id = "meta"
 
   [data.cct_params]
-  authProvider = "auth"
   poolMin = 1
   poolMax = 100
   user = "s_mc"

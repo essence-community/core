@@ -12,4 +12,4 @@ CMD mkdir -p /dist/ungate && \
     rm -rf /dist/ungate/* && \
     cp -v -r /core/backend/bin/* /dist/ungate/. && \
     cd /dist/ungate && \
-    yarn install
+    yarn install --production=true
