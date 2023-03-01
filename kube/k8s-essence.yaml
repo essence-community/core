@@ -274,8 +274,18 @@ spec:
               name: essence-store-module-pvc
             - mountPath: /opt/work_gate/config
               name: essence-store-config-pvc
+            - mountPath: /opt/work_gate/tmp
+              name: essence-cache-volume
+            - mountPath: /opt/work_gate/logs
+              name: essence-log-volume
       restartPolicy: Always
       volumes:
+        - name: essence-cache-volume
+          emptyDir:
+            sizeLimit: 1000Mi
+        - name: essence-log-volume
+          emptyDir:
+            sizeLimit: 1000Mi
         - name: essence-store-module-pvc
           persistentVolumeClaim:
             claimName: essence-store-module-pvc
