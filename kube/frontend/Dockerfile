@@ -14,7 +14,7 @@ ARG REACT_APP_SETTINGS="/setting.js"
 
 RUN apt -y install git --no-install-recommends
 
-ARG VERSION_ESSENCE_CORE=3.0.1
+ARG VERSION_ESSENCE_CORE=3.0.2
 
 RUN cd \opt && \
     echo $VERSION_ESSENCE_CORE && \
