@@ -3,6 +3,8 @@ FROM node:21
 RUN apt-get update && \
     apt-get install git
 
+ENV NODE_OPTIONS=--openssl-legacy-provider
+
 CMD mkdir -p /dist/ungate && \
     rm -rf /usr/local/share/.cache && \
     cd /core/backend && \
