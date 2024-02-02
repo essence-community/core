@@ -1,0 +1,4 @@
+- $$indexCreated:
+    fieldName: ck_id
+    unique: true
+    sparse: false

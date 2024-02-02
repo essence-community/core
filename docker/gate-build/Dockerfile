@@ -1,4 +1,4 @@
-FROM node:14
+FROM node:21
 
 RUN apt-get update && \
     apt-get install git
@@ -6,6 +6,7 @@ RUN apt-get update && \
 CMD mkdir -p /dist/ungate && \
     rm -rf /usr/local/share/.cache && \
     cd /core/backend && \
+    git config --global --add safe.directory /core/backend && \
     git clean -fdx && \
     yarn install && \
     yarn build && \
