@@ -14,4 +14,8 @@ CMD cd /core/frontend/ && \
     yarn install && \
     yarn build && \
     rm -rf /dist/front/* && \
-    cp -r -v build/* /dist/front
+    cp -r -v build/* /dist/front && \
+    yarn cache clean && \
+    rm -rf /usr/local/share/.cache/* && \
+    rm -rf ~/.cache/* && \
+    rm -rf ~/.npm

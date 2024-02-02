@@ -13,4 +13,8 @@ CMD mkdir -p /dist/ungate && \
     rm -rf /dist/ungate/* && \
     cp -v -r /core/backend/bin/* /dist/ungate/. && \
     cd /dist/ungate && \
-    yarn install --production=true
+    yarn install --production=true && \
+    yarn cache clean && \
+    rm -rf /usr/local/share/.cache/* && \
+    rm -rf ~/.cache/* && \
+    rm -rf ~/.npm
