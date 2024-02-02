@@ -2,6 +2,8 @@ version: '3'
 services:
   web-build:
     build: ./web-build
+    security_opt:
+      - seccomp:unconfined
     volumes:
       - './../:/core'
       - './dist:/dist'
@@ -12,6 +14,8 @@ services:
 
   gate-build:
     build: ./gate-build
+    security_opt:
+      - seccomp:unconfined
     volumes:
       - './dist:/dist'
       - './../:/core'
@@ -20,6 +24,8 @@ services:
 
   gate:
     build: ./gate
+    security_opt:
+      - seccomp:unconfined
     depends_on:
       - postgres
     volumes:
