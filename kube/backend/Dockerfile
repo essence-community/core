@@ -2,7 +2,7 @@ FROM node:21 as builder
 
 ARG UID=1001
 ARG GID=1001
-
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN groupadd --gid $GID ungate && \
     useradd --uid $UID --gid $GID --shell /bin/bash --create-home ungate && \
     apt update && \
@@ -66,6 +66,7 @@ ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
 ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
 ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
+ENV NODE_OPTIONS=--openssl-legacy-provider
 
 RUN adduser -u $UID -s /bin/bash --disabled-password ungate; \
     apk upgrade --update-cache; \

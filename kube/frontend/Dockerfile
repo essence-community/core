@@ -11,7 +11,7 @@ ENV REACT_APP_SHOW_DEV_TOOLS=false
 ARG REACT_APP_WS_BASE_URL=/notification
 ARG REACT_APP_FILE_URL=/assets
 ARG REACT_APP_SETTINGS="/setting.js"
-
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN apt -y install git --no-install-recommends
 
 ARG VERSION_ESSENCE_CORE=dev
