@@ -5,7 +5,10 @@ RUN apt-get update && \
 
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
-CMD mkdir -p /dist/ungate && \
+CMD rm -rf /usr/local/share/.cache/* && \
+    rm -rf ~/.cache/* && \
+    rm -rf ~/.npm && \
+    mkdir -p /dist/ungate && \
     rm -rf /usr/local/share/.cache && \
     cd /core/backend && \
     git config --global --add safe.directory /core/backend && \

@@ -5,7 +5,10 @@ RUN apt-get update && \
 
 ENV NODE_OPTIONS=--openssl-legacy-provider
 
-CMD cd /core/frontend/ && \
+CMD rm -rf /usr/local/share/.cache/* && \
+    rm -rf ~/.cache/* && \
+    rm -rf ~/.npm && \
+    cd /core/frontend/ && \
     git config --global --add safe.directory /core/frontend && \
     rm -rf /usr/local/share/.cache && \
     git clean -fdx && \
