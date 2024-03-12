@@ -1,4 +1,4 @@
-FROM node:14 AS builder
+FROM node:21 AS builder
 
 ENV ESSENCE_BACKEND_HOST=essence_backend
 ENV ESSENCE_BACKEND_PORT=8080
@@ -11,10 +11,10 @@ ENV REACT_APP_SHOW_DEV_TOOLS=false
 ARG REACT_APP_WS_BASE_URL=/notification
 ARG REACT_APP_FILE_URL=/assets
 ARG REACT_APP_SETTINGS="/setting.js"
-
+ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN apt -y install git --no-install-recommends
 
-ARG VERSION_ESSENCE_CORE=3.0.2
+ARG VERSION_ESSENCE_CORE=release/3.0.3
 
 RUN cd \opt && \
     echo $VERSION_ESSENCE_CORE && \

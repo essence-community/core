@@ -1,0 +1,31 @@
+- ck_id: admingate
+  cv_description: Провайдер администрирования
+  ck_d_plugin: admingate
+  cl_autoload: 0
+  cct_params: {}
+- ck_id: authcore
+  cl_autoload: 1
+  ck_d_plugin: coreauthpg
+  cv_description: Провайдер внутренней авторизации
+  cct_params:
+    user: s_ac
+    password: s_ac
+    connectString: postgres://postgres:5432/core_auth
+    poolMax: 10
+    sessionDuration: 2000
+    onlySession: false
+- ck_id: meta
+  cv_description: Провайдер работы с метаинформацией
+  cl_autoload: true
+  ck_d_plugin: PostgreSQLDb
+  cct_params:
+    user: s_mc
+    password: s_mc
+    core: true
+    poolMin: 1
+    poolMax: 100
+    connectString: postgres://postgres:5432/core
+- $$indexCreated:
+    fieldName: ck_id
+    unique: true
+    sparse: false
