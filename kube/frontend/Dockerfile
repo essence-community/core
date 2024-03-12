@@ -14,7 +14,7 @@ ARG REACT_APP_SETTINGS="/setting.js"
 ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN apt -y install git --no-install-recommends
 
-ARG VERSION_ESSENCE_CORE=dev
+ARG VERSION_ESSENCE_CORE=release/3.0.3
 
 RUN cd \opt && \
     echo $VERSION_ESSENCE_CORE && \
