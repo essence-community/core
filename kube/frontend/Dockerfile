@@ -24,6 +24,7 @@ RUN cd \opt && \
     export "REACT_APP_COMMIT_ID=`git log -1 --pretty=format:%h`" && \
     export "REACT_APP_BRANCH_DATE_TIME=`date +'%F %H:%M:%S'`" && \
     yarn install && \
+    npx browserslist@latest --update-db && \
     yarn build && \
     cp -v -r /opt/core-frontend/build/* /opt/front/. && \
     yarn cache clean -all && \
