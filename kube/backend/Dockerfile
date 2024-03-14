@@ -59,19 +59,32 @@ ARG UID=1001
 ARG GID=1001
 
 ARG TZ=Europe/Moscow
+ARG GATE_DEFAULT_TIMEZONE_DATE=Europe/Moscow
 ENV LOGGER_CONF=/opt/work_gate/config/logger.json
 ARG GATE_CLUSTER_NUM=4
 ENV PROPERTY_DIR=/opt/work_gate/config
 ENV GATE_UPLOAD_DIR=/opt/work_gate/tmp
 ENV NEDB_TEMP_DB=/opt/work_gate/tmp/db
 ENV NEDB_MULTI_HOST='unix:///opt/work_gate/tmp/nedb.sock'
-ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
 ENV NODE_OPTIONS=--openssl-legacy-provider
+ENV JAVA_HOME=/usr/lib/jvm/default-jvm/jre
+
+COPY ./docker_util/instantclient-basiclite-linux.x64-12.2.0.1.0.zip /tmp/instantclient.zip
 
 RUN adduser -u $UID -s /bin/bash --disabled-password ungate; \
     apk upgrade --update-cache; \
-    apk add bash openjdk8-jre tzdata; \
+    apk --no-cache add openjdk8-jre bash tzdata libaio libnsl libc6-compat curl; \
     ln -snf /usr/share/zoneinfo/$TZ /etc/localtime && echo $TZ > /etc/timezone; \
+    cd /tmp; \
+    unzip instantclient.zip; \
+    mv instantclient*/ /usr/lib/instantclient; \
+    rm instantclient.zip; \
+    mkdir -p /usr/lib/instantclient/lib; \
+    ls /usr/lib/instantclient/*.so* | while read line; do ln -s $line /usr/lib/$(basename $line | awk '{a=gensub(/\.\d+\.\d+/,"","gi", $0); print a}'); done; \
+    ls /usr/lib/instantclient/*.so* | while read line; do ln -s $line /usr/lib/instantclient/lib/$(basename $line | awk '{a=gensub(/\.\d+\.\d+/,"","gi", $0); print a}'); done; \
+    ln -s /usr/lib/libnsl.so.3 /usr/lib/libnsl.so.1; \
+    ln -s /lib/libc.so.6 /usr/lib/libresolv.so.2; \
+    ln -s /lib64/ld-linux-x86-64.so.2 /usr/lib/ld-linux-x86-64.so.2; \
     rm -rf /tmp/* /var/cache/apk/*
 
 COPY --from=builder --chown=$UID:$GID /opt/work_dbms /opt/work_dbms
