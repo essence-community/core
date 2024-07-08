@@ -15,7 +15,7 @@ RUN groupadd --gid $GID ungate && \
     mkdir -p /opt/work_gate/tmp && \
     mkdir -p /opt/work_dbms
 
-ARG VERSION_ESSENCE_CORE=release/3.0.3
+ARG VERSION_ESSENCE_CORE=release/3.0.4
 
 RUN cd /opt && \
     echo $VERSION_ESSENCE_CORE && \
