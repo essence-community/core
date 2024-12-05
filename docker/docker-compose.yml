@@ -65,6 +65,7 @@ services:
     volumes:
       - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
       - "./dist/data-pg:/var/lib/postgresql/data"
+    user: '${UID}:${GID}'
     environment:
       POSTGRES_PASSWORD: s_su
       POSTGRES_USER: s_su
