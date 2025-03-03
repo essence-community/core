@@ -1,4 +1,4 @@
-FROM node:21 AS builder
+FROM node:22 AS builder
 
 ENV ESSENCE_BACKEND_HOST=essence_backend
 ENV ESSENCE_BACKEND_PORT=8080
@@ -14,7 +14,7 @@ ARG REACT_APP_SETTINGS="/setting.js"
 ENV NODE_OPTIONS=--openssl-legacy-provider
 RUN apt -y install git --no-install-recommends
 
-ARG VERSION_ESSENCE_CORE=release/3.0.4
+ARG VERSION_ESSENCE_CORE=release/3.1.0
 
 RUN cd \opt && \
     echo $VERSION_ESSENCE_CORE && \
@@ -24,6 +24,7 @@ RUN cd \opt && \
     export "REACT_APP_COMMIT_ID=`git log -1 --pretty=format:%h`" && \
     export "REACT_APP_BRANCH_DATE_TIME=`date +'%F %H:%M:%S'`" && \
     yarn install && \
+    npx browserslist@latest --update-db && \
     yarn build && \
     cp -v -r /opt/core-frontend/build/* /opt/front/. && \
     yarn cache clean -all && \
