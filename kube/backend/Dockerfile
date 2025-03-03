@@ -1,4 +1,4 @@
-FROM node:21 as builder
+FROM node:22 as builder
 
 ARG UID=1001
 ARG GID=1001
@@ -53,7 +53,7 @@ RUN cd /opt/check_install && \
     yarn cache clean -all && \
     rm -rf /usr/local/share/.cache
 
-FROM node:21-alpine
+FROM node:22-alpine
 
 ARG UID=1001
 ARG GID=1001

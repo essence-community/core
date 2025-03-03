@@ -1,4 +1,4 @@
-FROM node:21 AS builder
+FROM node:22 AS builder
 
 ENV ESSENCE_BACKEND_HOST=essence_backend
 ENV ESSENCE_BACKEND_PORT=8080
