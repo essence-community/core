@@ -1,0 +1,96 @@
+{{- if .Values.backend.persistence.module.enabled }}
+---
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: essence-store-module-pv
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.backend.persistence.module.storageClass }}
+  capacity:
+    storage: {{ .Values.backend.persistence.module.size }}
+  accessModes:
+    - {{ .Values.backend.persistence.module.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.backend.persistence.module.reclaimPolicy }}
+  hostPath:
+    path: {{ .Values.backend.persistence.module.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-store-module-pvc
+spec:
+  accessModes:
+    - {{ .Values.backend.persistence.module.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.backend.persistence.module.size }}
+  storageClassName: {{ .Values.backend.persistence.module.storageClass }}
+{{- end }}
+---
+{{- if .Values.backend.persistence.config.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: essence-store-config-pv
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.backend.persistence.config.storageClass }}
+  capacity:
+    storage: {{ .Values.backend.persistence.config.size }}
+  accessModes:
+    - {{ .Values.backend.persistence.config.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.backend.persistence.config.reclaimPolicy }}
+  hostPath:
+    path: {{ .Values.backend.persistence.config.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-store-config-pvc
+spec:
+  accessModes:
+    - {{ .Values.backend.persistence.config.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.backend.persistence.config.size }}
+  storageClassName: {{ .Values.backend.persistence.config.storageClass }}
+{{- end }}
+---
+{{- if .Values.database.persistence.enabled }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: essence-store-pg-data-pv
+  namespace: {{ .Values.namespace.name }}
+  labels:
+    type: local
+spec:
+  storageClassName: {{ .Values.database.persistence.storageClass }}
+  capacity:
+    storage: {{ .Values.database.persistence.size }}
+  accessModes:
+    - {{ .Values.database.persistence.accessMode }}
+  persistentVolumeReclaimPolicy: {{ .Values.database.persistence.reclaimPolicy }}
+  hostPath:
+    path: {{ .Values.database.persistence.hostPath }}
+---
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-store-pg-data-pvc
+spec:
+  accessModes:
+    - {{ .Values.database.persistence.accessMode }}
+  resources:
+    requests:
+      storage: {{ .Values.database.persistence.size }}
+  storageClassName: {{ .Values.database.persistence.storageClass }}
+{{- end }} 

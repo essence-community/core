@@ -1,0 +1,15 @@
+apiVersion: v2
+name: essence
+description: A Helm chart for Essence application
+type: application
+version: 3.1.0
+appVersion: '3.1.0'
+keywords:
+    - essence
+    - application
+home: https://github.com/essencecommunity/essence
+sources:
+    - https://github.com/essencecommunity/essence
+maintainers:
+    - name: Essence Community
+      email: support@essence.com

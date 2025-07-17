@@ -1,0 +1,26 @@
+apiVersion: v1
+kind: Pod
+metadata:
+    name: '{{ .Release.Name }}-test-connection'
+    namespace: { { .Values.namespace.name } }
+    annotations:
+        'helm.sh/hook': test
+spec:
+    containers:
+        - name: test-connection
+          image: busybox
+          command:
+              - /bin/sh
+              - -c
+              - |
+                  echo "Testing database connection..."
+                  wget -q --spider http://essence-backend-db:{{ .Values.database.service.port }} || echo "Database connection failed"
+
+                  echo "Testing backend connection..."
+                  wget -q --spider http://essence-backend:{{ .Values.backend.service.port }}/kube/liveness || echo "Backend connection failed"
+
+                  echo "Testing frontend connection..."
+                  wget -q --spider http://essence-frontend:{{ .Values.frontend.service.port }}/liveness || echo "Frontend connection failed"
+
+                  echo "All connection tests completed"
+    restartPolicy: Never

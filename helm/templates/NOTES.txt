@@ -1,0 +1,80 @@
+{{- if .Values.namespace.create }}
+NAMESPACE: {{ .Values.namespace.name }}
+{{- end }}
+
+{{- if .Values.database.enabled }}
+DATABASE:
+  Service: {{ .Values.namespace.name }}/essence-backend-db
+  Port: {{ .Values.database.service.port }}
+  Type: {{ .Values.database.service.type }}
+{{- end }}
+
+{{- if .Values.backend.enabled }}
+BACKEND:
+  Service: {{ .Values.namespace.name }}/essence-backend
+  Port: {{ .Values.backend.service.port }}
+  Type: {{ .Values.backend.service.type }}
+  Replicas: {{ .Values.backend.replicas }}
+{{- end }}
+
+{{- if .Values.frontend.enabled }}
+FRONTEND:
+  Service: {{ .Values.namespace.name }}/essence-frontend
+  Port: {{ .Values.frontend.service.port }}
+  Type: {{ .Values.frontend.service.type }}
+  Replicas: {{ .Values.frontend.replicas }}
+{{- end }}
+
+{{- if .Values.ingress.enabled }}
+INGRESS:
+  Name: {{ .Values.namespace.name }}/essence-frontend-ingress
+  {{- range .Values.ingress.hosts }}
+  Host: {{ .host }}
+  {{- end }}
+{{- end }}
+
+{{- if .Values.database.enabled }}
+{{- if eq .Values.database.service.type "LoadBalancer" }}
+To get the database external IP:
+  kubectl get service essence-backend-db -n {{ .Values.namespace.name }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.backend.enabled }}
+{{- if eq .Values.backend.service.type "LoadBalancer" }}
+To get the backend external IP:
+  kubectl get service essence-backend -n {{ .Values.namespace.name }}
+{{- end }}
+{{- end }}
+
+{{- if .Values.frontend.enabled }}
+{{- if eq .Values.frontend.service.type "LoadBalancer" }}
+To get the frontend external IP:
+  kubectl get service essence-frontend -n {{ .Values.namespace.name }}
+{{- end }}
+{{- end }}
+
+To check the status of your deployment:
+  kubectl get pods -n {{ .Values.namespace.name }}
+
+To view logs:
+  kubectl logs -f deployment/essence-backend -n {{ .Values.namespace.name }}
+  kubectl logs -f deployment/essence-frontend -n {{ .Values.namespace.name }}
+  {{- if .Values.database.enabled }}
+  kubectl logs -f deployment/essence-backend-db -n {{ .Values.namespace.name }}
+  {{- end }}
+
+To access the application:
+  {{- if .Values.ingress.enabled }}
+  {{- range .Values.ingress.hosts }}
+  http{{- if $.Values.ingress.tls }}s{{- end }}://{{ .host }}
+  {{- end }}
+  {{- else if .Values.frontend.enabled }}
+  {{- if eq .Values.frontend.service.type "LoadBalancer" }}
+  Get the external IP and access: http://<EXTERNAL-IP>:{{ .Values.frontend.service.port }}
+  {{- else }}
+  Port forward to access: kubectl port-forward service/essence-frontend {{ .Values.frontend.service.port }}:{{ .Values.frontend.service.port }} -n {{ .Values.namespace.name }}
+  {{- end }}
+  {{- end }}
+
+For more information, see the README.md file in the chart directory. 

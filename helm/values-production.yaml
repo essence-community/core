@@ -1,0 +1,189 @@
+# Production values for Essence Helm Chart
+
+global:
+    namespace: essence-prod
+    imageRegistry: essencecommunity
+    imagePullPolicy: Always
+
+namespace:
+    create: true
+    name: essence-prod
+
+# Database configuration
+database:
+    enabled: true
+    image:
+        repository: postgres
+        tag: '11-alpine'
+        pullPolicy: ''
+    service:
+        type: ClusterIP
+        port: 5432
+    persistence:
+        enabled: true
+        storageClass: 'pg-data'
+        size: 20Gi
+        accessMode: ReadWriteOnce
+        reclaimPolicy: Retain
+        hostPath: '/mnt/pg_data'
+    resources:
+        requests:
+            memory: '1Gi'
+            cpu: '500m'
+        limits:
+            memory: '2Gi'
+            cpu: '1000m'
+
+# Backend configuration
+backend:
+    enabled: true
+    replicas: 3
+    image:
+        repository: essence-backend
+        tag: 'latest'
+        pullPolicy: 'Always'
+    service:
+        type: ClusterIP
+        port: 8080
+    strategy:
+        type: RollingUpdate
+    persistence:
+        module:
+            enabled: true
+            storageClass: 'module-essence'
+            size: 10Gi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/module_essence'
+        config:
+            enabled: true
+            storageClass: 'config-essence'
+            size: 1Gi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/config_essence'
+    resources:
+        requests:
+            memory: '1Gi'
+            cpu: '1000m'
+        limits:
+            memory: '2Gi'
+            cpu: '2000m'
+    probes:
+        liveness:
+            path: /kube/liveness
+            port: 8080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        startup:
+            path: /kube/startup
+            port: 8080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+        readiness:
+            path: /kube/readiness
+            port: 8080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+# Frontend configuration
+frontend:
+    enabled: true
+    replicas: 3
+    image:
+        repository: essence-frontend
+        tag: 'latest'
+        pullPolicy: 'Always'
+    service:
+        type: ClusterIP
+        port: 8080
+    strategy:
+        type: RollingUpdate
+    persistence:
+        module:
+            enabled: true
+            storageClass: 'module-essence'
+            size: 10Gi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/module_essence'
+    resources:
+        requests:
+            memory: '512Mi'
+            cpu: '500m'
+        limits:
+            memory: '1Gi'
+            cpu: '1000m'
+    probes:
+        liveness:
+            path: /liveness
+            port: 10080
+            initialDelaySeconds: 30
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+        startup:
+            path: /startup
+            port: 10080
+            initialDelaySeconds: 5
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 30
+        readiness:
+            path: /readiness
+            port: 10080
+            initialDelaySeconds: 60
+            periodSeconds: 10
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+# Ingress configuration
+ingress:
+    enabled: true
+    className: 'nginx'
+    annotations:
+        kubernetes.io/ingress.class: nginx
+        cert-manager.io/cluster-issuer: letsencrypt-prod
+        nginx.ingress.kubernetes.io/ssl-redirect: 'true'
+        nginx.ingress.kubernetes.io/force-ssl-redirect: 'true'
+    hosts:
+        - host: essence.mycompany.com
+          paths:
+              - path: /
+                pathType: Prefix
+    tls:
+        - secretName: essence-tls
+          hosts:
+              - essence.mycompany.com
+
+# Secrets configuration
+secrets:
+    superAdminUser: 'admin'
+    superAdminPassword: 'secure-password-here'
+    superAdminDb: 'essence_prod'
+
+# RBAC configuration
+rbac:
+    enabled: true
+    serviceAccount:
+        create: true
+        name: essence-backend-service-account
+    clusterRole:
+        create: true
+        name: essence-backend-pod-reader
+    roleBinding:
+        create: true
+        name: essence-role-view
+
+# Storage configuration
+storage:
+    cache:
+        sizeLimit: 2Gi
+    logs:
+        sizeLimit: 2Gi

@@ -1,0 +1,174 @@
+# Development values for Essence Helm Chart
+
+global:
+    namespace: essence-dev
+    imageRegistry: essencecommunity
+    imagePullPolicy: Always
+
+namespace:
+    create: true
+    name: essence-dev
+
+# Database configuration
+database:
+    enabled: true
+    image:
+        repository: postgres
+        tag: '11-alpine'
+        pullPolicy: ''
+    service:
+        type: LoadBalancer
+        port: 5432
+    persistence:
+        enabled: true
+        storageClass: 'pg-data'
+        size: 5Gi
+        accessMode: ReadWriteOnce
+        reclaimPolicy: Retain
+        hostPath: '/mnt/pg_data'
+    resources:
+        requests:
+            memory: '256Mi'
+            cpu: '250m'
+        limits:
+            memory: '512Mi'
+            cpu: '500m'
+
+# Backend configuration
+backend:
+    enabled: true
+    replicas: 1
+    image:
+        repository: essence-backend
+        tag: 'dev'
+        pullPolicy: 'Always'
+    service:
+        type: LoadBalancer
+        port: 8080
+    strategy:
+        type: Recreate
+    persistence:
+        module:
+            enabled: true
+            storageClass: 'module-essence'
+            size: 5Gi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/module_essence'
+        config:
+            enabled: true
+            storageClass: 'config-essence'
+            size: 200Mi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/config_essence'
+    resources:
+        requests:
+            memory: '512Mi'
+            cpu: '500m'
+        limits:
+            memory: '1Gi'
+            cpu: '1000m'
+    probes:
+        liveness:
+            path: /kube/liveness
+            port: 8080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+        startup:
+            path: /kube/startup
+            port: 8080
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 60
+        readiness:
+            path: /kube/readiness
+            port: 8080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+# Frontend configuration
+frontend:
+    enabled: true
+    replicas: 1
+    image:
+        repository: essence-frontend
+        tag: 'dev'
+        pullPolicy: 'Always'
+    service:
+        type: LoadBalancer
+        port: 8080
+    strategy:
+        type: Recreate
+    persistence:
+        module:
+            enabled: true
+            storageClass: 'module-essence'
+            size: 5Gi
+            accessMode: ReadWriteOnce
+            reclaimPolicy: Retain
+            hostPath: '/mnt/module_essence'
+    resources:
+        requests:
+            memory: '256Mi'
+            cpu: '250m'
+        limits:
+            memory: '512Mi'
+            cpu: '500m'
+    probes:
+        liveness:
+            path: /liveness
+            port: 10080
+            initialDelaySeconds: 15
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+        startup:
+            path: /startup
+            port: 10080
+            initialDelaySeconds: 1
+            periodSeconds: 1
+            timeoutSeconds: 5
+            failureThreshold: 60
+        readiness:
+            path: /readiness
+            port: 10080
+            initialDelaySeconds: 45
+            periodSeconds: 5
+            timeoutSeconds: 5
+            failureThreshold: 3
+
+# Ingress configuration
+ingress:
+    enabled: false
+
+# Secrets configuration
+secrets:
+    superAdminUser: 's_su'
+    superAdminPassword: 's_su'
+    superAdminDb: 's_su'
+
+# RBAC configuration
+rbac:
+    enabled: true
+    serviceAccount:
+        create: true
+        name: essence-backend-service-account
+    clusterRole:
+        create: true
+        name: essence-backend-pod-reader
+    roleBinding:
+        create: true
+        name: essence-role-view
+
+# Storage configuration
+storage:
+    cache:
+        sizeLimit: 1000Mi
+    logs:
+        sizeLimit: 1000Mi

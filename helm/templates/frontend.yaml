@@ -1,0 +1,86 @@
+{{- if .Values.frontend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-frontend
+spec:
+  replicas: {{ .Values.frontend.replicas }}
+  selector:
+    matchLabels:
+      app: essence-frontend
+  strategy:
+    type: {{ .Values.frontend.strategy.type }}
+  template:
+    metadata:
+      namespace: {{ .Values.namespace.name }}
+      labels:
+        app: essence-frontend
+    spec:
+      securityContext:
+          fsGroup: 101
+      containers:
+        - env:
+            - name: ESSENCE_BACKEND_HOST
+              value: $(ESSENCE_BACKEND_SERVICE_HOST)
+            - name: ESSENCE_BACKEND_PORT
+              value: $(ESSENCE_BACKEND_SERVICE_PORT)
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.frontend.image.repository }}:{{ .Values.frontend.image.tag }}
+          imagePullPolicy: {{ .Values.frontend.image.pullPolicy }}
+          name: essence-frontend
+          ports:
+            - containerPort: {{ .Values.frontend.service.port }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.frontend.probes.liveness.path }}
+              port: {{ .Values.frontend.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.frontend.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.liveness.failureThreshold }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.frontend.probes.startup.path }}
+              port: {{ .Values.frontend.probes.startup.port }}
+            initialDelaySeconds: {{ .Values.frontend.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.startup.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.frontend.probes.readiness.path }}
+              port: {{ .Values.frontend.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.frontend.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.frontend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.frontend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.frontend.probes.readiness.failureThreshold }}
+          {{- if .Values.frontend.resources }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.frontend.persistence.module.enabled }}
+          volumeMounts:
+            - mountPath: /opt/module
+              name: essence-store-module-pvc
+          {{- end }}
+      restartPolicy: Always
+      {{- if .Values.frontend.persistence.module.enabled }}
+      volumes:
+        - name: essence-store-module-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-module-pvc
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-frontend
+spec:
+  ports:
+    - name: "{{ .Values.frontend.service.port }}"
+      port: {{ .Values.frontend.service.port }}
+  selector:
+    app: essence-frontend
+  type: {{ .Values.frontend.service.type }}
+{{- end }} 

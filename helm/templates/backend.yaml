@@ -1,0 +1,125 @@
+{{- if .Values.backend.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-backend
+spec:
+  replicas: {{ .Values.backend.replicas }}
+  selector:
+    matchLabels:
+      app: essence-backend
+  strategy:
+    type: {{ .Values.backend.strategy.type }}
+  template:
+    metadata:
+      namespace: {{ .Values.namespace.name }}
+      labels:
+        app: essence-backend
+    spec:
+      {{- if .Values.rbac.enabled }}
+      serviceAccountName: {{ .Values.rbac.serviceAccount.name }}
+      {{- end }}
+      securityContext:
+        fsGroup: 1001
+      containers:
+        - env:
+            - name: POSTGRES_ADMIN_DATABASE
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_db
+            - name: POSTGRES_ADMIN_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_password
+            - name: POSTGRES_ADMIN_USER
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_user
+            - name: POSTGRES_HOST
+              value: $(ESSENCE_BACKEND_DB_SERVICE_HOST)
+            - name: POSTGRES_PORT
+              value: $(ESSENCE_BACKEND_DB_SERVICE_PORT)
+            - name: KUBERNETES_NAMESPACE
+              value: {{ .Values.namespace.name }}
+          image: {{ .Values.global.imageRegistry }}/{{ .Values.backend.image.repository }}:{{ .Values.backend.image.tag }}
+          imagePullPolicy: {{ .Values.backend.image.pullPolicy }}
+          name: essence-backend
+          ports:
+            - containerPort: {{ .Values.backend.service.port }}
+          livenessProbe:
+            httpGet:
+              path: {{ .Values.backend.probes.liveness.path }}
+              port: {{ .Values.backend.probes.liveness.port }}
+            initialDelaySeconds: {{ .Values.backend.probes.liveness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.liveness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.liveness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.liveness.failureThreshold }}
+          startupProbe:
+            httpGet:
+              path: {{ .Values.backend.probes.startup.path }}
+              port: {{ .Values.backend.probes.startup.port }}
+            initialDelaySeconds: {{ .Values.backend.probes.startup.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.startup.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.startup.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.startup.failureThreshold }}
+          readinessProbe:
+            httpGet:
+              path: {{ .Values.backend.probes.readiness.path }}
+              port: {{ .Values.backend.probes.readiness.port }}
+            initialDelaySeconds: {{ .Values.backend.probes.readiness.initialDelaySeconds }}
+            periodSeconds: {{ .Values.backend.probes.readiness.periodSeconds }}
+            timeoutSeconds: {{ .Values.backend.probes.readiness.timeoutSeconds }}
+            failureThreshold: {{ .Values.backend.probes.readiness.failureThreshold }}
+          {{- if .Values.backend.resources }}
+          resources:
+            {{- toYaml .Values.backend.resources | nindent 12 }}
+          {{- end }}
+          volumeMounts:
+            {{- if .Values.backend.persistence.module.enabled }}
+            - mountPath: /opt/work_gate/module
+              name: essence-store-module-pvc
+            {{- end }}
+            {{- if .Values.backend.persistence.config.enabled }}
+            - mountPath: /opt/work_gate/config
+              name: essence-store-config-pvc
+            {{- end }}
+            - mountPath: /opt/work_gate/tmp
+              name: essence-cache-volume
+            - mountPath: /opt/work_gate/logs
+              name: essence-log-volume
+      restartPolicy: Always
+      volumes:
+        - name: essence-cache-volume
+          emptyDir:
+            sizeLimit: {{ .Values.storage.cache.sizeLimit }}
+        - name: essence-log-volume
+          emptyDir:
+            sizeLimit: {{ .Values.storage.logs.sizeLimit }}
+        {{- if .Values.backend.persistence.module.enabled }}
+        - name: essence-store-module-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-module-pvc
+        {{- end }}
+        {{- if .Values.backend.persistence.config.enabled }}
+        - name: essence-store-config-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-config-pvc
+        {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-backend
+spec:
+  ports:
+    - name: "{{ .Values.backend.service.port }}"
+      port: {{ .Values.backend.service.port }}
+  selector:
+    app: essence-backend
+  type: {{ .Values.backend.service.type }}
+{{- end }} 

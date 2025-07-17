@@ -1,0 +1,71 @@
+{{- if .Values.database.enabled }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-backend-db
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: essence-backend-db
+  template:
+    metadata:
+      namespace: {{ .Values.namespace.name }}
+      labels:
+        app: essence-backend-db
+    spec:
+      containers:
+        - env:
+            - name: POSTGRES_DB
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_db
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_password
+            - name: POSTGRES_USER
+              valueFrom:
+                secretKeyRef:
+                  name: essence-secret
+                  key: super_admin_user
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          image: {{ .Values.database.image.repository }}:{{ .Values.database.image.tag }}
+          imagePullPolicy: {{ .Values.database.image.pullPolicy }}
+          name: essence-backend-db
+          ports:
+            - containerPort: {{ .Values.database.service.port }}
+          {{- if .Values.database.resources }}
+          resources:
+            {{- toYaml .Values.database.resources | nindent 12 }}
+          {{- end }}
+          {{- if .Values.database.persistence.enabled }}
+          volumeMounts:
+            - mountPath: /var/lib/postgresql/data
+              name: essence-store-pg-data-pvc
+          {{- end }}
+      restartPolicy: Always
+      {{- if .Values.database.persistence.enabled }}
+      volumes:
+        - name: essence-store-pg-data-pvc
+          persistentVolumeClaim:
+            claimName: essence-store-pg-data-pvc
+      {{- end }}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  namespace: {{ .Values.namespace.name }}
+  name: essence-backend-db
+spec:
+  ports:
+    - name: "{{ .Values.database.service.port }}"
+      port: {{ .Values.database.service.port }}
+  selector:
+    app: essence-backend-db
+  type: {{ .Values.database.service.type }}
+{{- end }} 
