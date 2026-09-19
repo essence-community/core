@@ -3,14 +3,14 @@
   cv_description: Основные настройки метаинформации
   ck_d_plugin: CorePGContext
   cct_params:
-    debug: true
-    disableCache: true
-    poolMax: 100
-    maxPostSize: 10000000
-    user: s_mc
-    password: s_mc
-    connectString: postgres://postgres:5432/core
+      debug: true
+      disableCache: true
+      poolMax: 100
+      maxPostSize: 10000000
+      user: s_mc
+      password: '{env}CORE_META_PASSWORD'
+      connectString: postgres://postgres:5432/core
 - $$indexCreated:
-    fieldName: ck_id
-    unique: true
-    sparse: false
+      fieldName: ck_id
+      unique: true
+      sparse: false

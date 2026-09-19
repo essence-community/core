@@ -1,4 +1,4 @@
-FROM node:22
+FROM node:24
 
 RUN apt-get update && \
     apt-get install git
@@ -16,7 +16,7 @@ CMD rm -rf /usr/local/share/.cache/* && \
     export REACT_APP_BRANCH_DATE_TIME=`git log -n 1 --pretty='format:%ai'` && \
     export && \
     rm -rf build && \
-    yarn install && \
+    yarn install --ignore-engines && \
     npx browserslist@latest --update-db && \
     yarn build && \
     rm -rf /dist/front/* && \

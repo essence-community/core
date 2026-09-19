@@ -1,5 +1,5 @@
-FROM openjdk:12-oracle
+FROM eclipse-temurin:17-jdk-jammy
 
-RUN yum install git -y
+RUN apt update && apt install git -y
 
 CMD /scripts/run-migration.sh

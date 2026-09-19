@@ -1,4 +1,4 @@
-FROM nginx:1.25.3
+FROM nginx:stable
 
 COPY ./nginx.conf /etc/nginx/nginx.conf
 

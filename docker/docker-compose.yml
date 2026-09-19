@@ -28,6 +28,11 @@ services:
       - seccomp:unconfined
     depends_on:
       - postgres
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:8080/kube/liveness || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     volumes:
       - './dist/ungate:/opt/work_gate/ungate'
       - './gate/config:/opt/work_gate/configs'
@@ -39,6 +44,8 @@ services:
       NEDB_TEMP_DB: /opt/work_gate/tmp/db
       NEDB_MULTI_HOST: 'unix:///opt/work_gate/nedb.sock'
       GATE_NODE_NAME: gate
+      CORE_META_PASSWORD: ${CORE_META_PASSWORD:-s_mc}
+      CORE_AUTH_PASSWORD: ${CORE_AUTH_PASSWORD:-s_ac}
     links:
       - postgres
 
@@ -50,9 +57,8 @@ services:
       - '../:/core'
       - './liquibase/scripts:/scripts'
     environment:
-      WAIT_HOSTS: postgres:5432
-      POSTGRES_PASSWORD: s_su
-      POSTGRES_USER: s_su
+      POSTGRES_PASSWORD: ${CORE_ADMIN_PASSWORD:-s_su}
+      POSTGRES_USER: ${CORE_ADMIN_USERNAME:-s_su}
       POSTGRES_URL_CORE: jdbc:postgresql://postgres:5432/core
       POSTGRES_URL_AUTH: jdbc:postgresql://postgres:5432/core_auth
     links:
@@ -60,15 +66,20 @@ services:
 
   postgres:
     build: ./postgres
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${CORE_ADMIN_USERNAME:-s_su} -d ${CORE_ADMIN_DATABASE:-s_su}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
     ports:
       - "9021:5432"
     volumes:
       - "./docker-entrypoint-initdb.d:/docker-entrypoint-initdb.d"
       - "./dist/data-pg:/var/lib/postgresql/data"
     environment:
-      POSTGRES_PASSWORD: s_su
-      POSTGRES_USER: s_su
-      POSTGRES_DB: s_su
+      POSTGRES_PASSWORD: ${CORE_ADMIN_PASSWORD:-s_su}
+      POSTGRES_USER: ${CORE_ADMIN_USERNAME:-s_su}
+      POSTGRES_DB: ${CORE_ADMIN_DATABASE:-s_su}
       POSTGRES_CORE_DB: core
       PGDATA: /var/lib/postgresql/data/pgdata
 

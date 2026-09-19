@@ -1,4 +1,4 @@
-FROM node:22
+FROM node:24
 
 RUN apt-get update && \
     apt-get install git
@@ -13,12 +13,12 @@ CMD rm -rf /usr/local/share/.cache/* && \
     cd /core/backend && \
     git config --global --add safe.directory /core/backend && \
     git clean -fdx && \
-    yarn install && \
+    yarn install --ignore-engines && \
     yarn build && \
     rm -rf /dist/ungate/* && \
     cp -v -r /core/backend/bin/* /dist/ungate/. && \
     cd /dist/ungate && \
-    yarn install --production=true && \
+    yarn install --production=true --ignore-engines && \
     cd /core/backend && \
     git clean -fdx && \
     yarn cache clean && \

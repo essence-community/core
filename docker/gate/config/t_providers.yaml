@@ -8,24 +8,24 @@
   ck_d_plugin: coreauthpg
   cv_description: Провайдер внутренней авторизации
   cct_params:
-    user: s_ac
-    password: s_ac
-    connectString: postgres://postgres:5432/core_auth
-    poolMax: 10
-    sessionDuration: 2000
-    onlySession: false
+      user: s_ac
+      password: '{env}CORE_AUTH_PASSWORD'
+      connectString: postgres://postgres:5432/core_auth
+      poolMax: 10
+      sessionDuration: 2000
+      onlySession: false
 - ck_id: meta
   cv_description: Провайдер работы с метаинформацией
   cl_autoload: true
   ck_d_plugin: PostgreSQLDb
   cct_params:
-    user: s_mc
-    password: s_mc
-    core: true
-    poolMin: 1
-    poolMax: 100
-    connectString: postgres://postgres:5432/core
+      user: s_mc
+      password: '{env}CORE_META_PASSWORD'
+      core: true
+      poolMin: 1
+      poolMax: 100
+      connectString: postgres://postgres:5432/core
 - $$indexCreated:
-    fieldName: ck_id
-    unique: true
-    sparse: false
+      fieldName: ck_id
+      unique: true
+      sparse: false
